@@ -1,9 +1,9 @@
-#include "store.h"
+#include "kvstore.h"
 #include "object.h"
 
 class Application : public Object{
     public:
-        Store kv;
+        KVStore kv;
         size_t node;
  
         Application(size_t idx) {

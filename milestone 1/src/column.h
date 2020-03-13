@@ -3,9 +3,9 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include <string.h>
-
+#include "string.h"
 #include "object.h"
+#include "arraytemplate.h"
 
 class BoolColumn;
 class DoubleColumn;
@@ -111,20 +111,10 @@ class Column : public Object {
  */
 class IntColumn : public Column {
  public:
-  IntArray* arr_;
+  Array<int>* arr_;
 
   IntColumn() {
-    arr_ = new IntArray();
-  }
-
-  IntColumn(int n, ...) {
-    va_list valist;
-    int num;
-    va_start(valist, num);
-    for (int i = 0; i < num; i++) {
-      arr_->add(va_arg(valist, int));
-    }
-    va_end(valist);
+    arr_ = new Array<int>();
   }
 
   int get(size_t idx) {
@@ -159,19 +149,9 @@ class IntColumn : public Column {
  */
 class StringColumn : public Column {
  public:
-  StringArray* arr_;
+  Array<String*>* arr_;
   StringColumn() {
-    arr_ = new StringArray();
-  }
-
-  StringColumn(String* n, ...) {
-    va_list valist;
-    int num;
-    va_start(valist, num);
-    for (int i = 0; i < num; i++) {
-      arr_->add(va_arg(valist, String*));
-    }
-    va_end(valist);
+    arr_ = new Array<String*>();
   }
 
   StringColumn* as_string() {
@@ -203,19 +183,9 @@ class StringColumn : public Column {
  */
 class BoolColumn : public Column {
  public:
-  BoolArray* arr_;
+  Array<bool>* arr_;
   BoolColumn() {
-    arr_ = new BoolArray();
-  }
-
-  BoolColumn(bool b, ...) {
-    va_list valist;
-    int num;
-    va_start(valist, num);
-    for (int i = 0; i < num; i++) {
-      arr_->add(va_arg(valist, bool));
-    }
-    va_end(valist);
+    arr_ = new Array<bool>();
   }
 
   BoolColumn* as_bool() {
@@ -247,19 +217,9 @@ class BoolColumn : public Column {
  */
 class DoubleColumn : public Column {
  public:
-  DoubleArray* arr_;
+  Array<double>* arr_;
   DoubleColumn() {
-    arr_ = new DoubleArray();
-  }
-
-  DoubleColumn(bool b, ...) {
-    va_list valist;
-    int num;
-    va_start(valist, num);
-    for (int i = 0; i < num; i++) {
-      arr_->add(va_arg(valist, bool));
-    }
-    va_end(valist);
+    arr_ = new Array<double>();
   }
 
   DoubleColumn* as_double() {

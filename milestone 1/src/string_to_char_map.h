@@ -4,7 +4,7 @@
 
 #include "object.h"
 #include "string.h"
-#include "array.h"
+#include "arraytemplate.h"
 #include "helper.h"
 
 
@@ -49,22 +49,22 @@ class StringToCharMapNode : public Object {
 class StringToCharMap : public Object
 {
     public:
-        Array** hashmap;
+        Array<Object*>** hashmap;
         size_t num_elements;
         const size_t MAX_HASH_LENGTH = 100;
 
         StringToCharMap() {
-            hashmap = new  Array*[MAX_HASH_LENGTH];
+            hashmap = new  Array<Object*>*[MAX_HASH_LENGTH];
             for (size_t x = 0; x < MAX_HASH_LENGTH; x++) {
-                hashmap[x] = new Array();
+                hashmap[x] = new Array<Object*>();
             }
             num_elements = 0;
         }
 
         StringToCharMap(StringToCharMap& m) {
-            hashmap = new  Array*[MAX_HASH_LENGTH];
+            hashmap = new  Array<Object*>*[MAX_HASH_LENGTH];
             for (size_t x = 0; x < MAX_HASH_LENGTH; x++) {
-                hashmap[x] = new Array();
+                hashmap[x] = new Array<Object*>();
             }
             num_elements = m.size();
         }
@@ -81,7 +81,7 @@ class StringToCharMap : public Object
          * private method that returns the array that 
          * would contain key.
          */
-        Array* findArray_(String* key){
+        Array<Object*>* findArray_(String* key){
             return hashmap[key->hash() % MAX_HASH_LENGTH];
         }
 
@@ -90,7 +90,7 @@ class StringToCharMap : public Object
          * exits  if not in map.
          */
         virtual char get(String *key) {
-            Array* arr = findArray_(key);
+            Array<Object*>* arr = findArray_(key);
             int x = arr->indexOf(key);
             if (x == -1) {
                 exit(1);
@@ -104,7 +104,7 @@ class StringToCharMap : public Object
          * Set the value at the given key in this map.
          */
         virtual void set(String *key, char value) {
-            Array* arr = findArray_(key);
+            Array<Object*>* arr = findArray_(key);
             int x = arr->indexOf(key);
             if (x == -1) { 
                 num_elements += 1;
@@ -121,7 +121,7 @@ class StringToCharMap : public Object
          * Remove the value at the given key in this map. No-op if value not in map.
          */
         virtual void remove(String *key) {
-            Array* arr = findArray_(key);
+            Array<Object*>* arr = findArray_(key);
             if (arr->indexOf(key) != -1) {
                 arr->remove(key);
                 num_elements -= 1;
@@ -132,7 +132,7 @@ class StringToCharMap : public Object
          * Determine if the given key is in this map.
          */
         virtual bool has(String *key) {
-            Array* arr = findArray_(key);
+            Array<Object*>* arr = findArray_(key);
             return arr->indexOf(key) != -1;
         }
 
@@ -143,20 +143,9 @@ class StringToCharMap : public Object
             String** arr_keys = new String*[size()];
             keys(arr_keys);
             for (int i = 0; i < size(); i++) {
-                Array* arr = findArray_(arr_keys[i]);
+                Array<Object*>* arr = findArray_(arr_keys[i]);
                 delete arr->get(arr->indexOf(arr_keys[i]));
             }
-        }
-
-        /**
-         * Remove all keys from this map.
-         */
-        virtual void clear() {
-            delete_map_nodes_();
-            for (int i = 0; i < MAX_HASH_LENGTH ; i++) {
-                hashmap[i]->clear();
-            }
-            num_elements = 0;
         }
 
         /**
@@ -173,16 +162,12 @@ class StringToCharMap : public Object
         virtual void keys(String **dest) {
             size_t count = 0;
             for (int i = 0; i < MAX_HASH_LENGTH; i++) {
-                Array* arr = hashmap[i];
+                Array<Object*>* arr = hashmap[i];
                 for (int x = 0; x < arr->getSize(); x++) {
                     dest[count] = static_cast<StringToCharMapNode*> (arr->array[x])->getKey();
                     count += 1;
                 }
             }
-        }
-
-        virtual bool equals(String* other) {
-            return other->equals(this);
         }
 
         virtual bool equals(StringToCharMap* other) {
@@ -200,14 +185,5 @@ class StringToCharMap : public Object
             delete[] other_keys;
             return true;
         }
-
-        size_t hash() {
-            size_t count = 0;
-            for (int i = 0; i < MAX_HASH_LENGTH; i++) {
-                count += hashmap[i]->hash();
-            }
-            return count;
-        }
-
     
 };

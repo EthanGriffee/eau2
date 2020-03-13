@@ -1,25 +1,9 @@
+#pragma once
+
 #include "object.h"
 #include "dataframe.h"
 #include "string.h"
-
-class KVStore {
-    public:
-        KVStore() {}
-
-        void put(Key key, Value value) {
-
-
-        }
-    
-        DataFrame*  get(Key key) {
-
-        }
-
-        DataFrame* waitAndGet(Key key) {
-
-        }
-
-};
+#include "dataframe.h"
 
 
 class Key : public Object {
@@ -53,4 +37,23 @@ class Key : public Object {
 class Value {
     public:
         char* data;
+};
+
+class KVStore {
+    public:
+        KVStore() {}
+
+        void put(Key key, Value value) {
+
+
+        }
+    
+        DataFrame*  get(Key key) {
+
+        }
+
+        DataFrame* waitAndGet(Key key) {
+
+        }
+
 };

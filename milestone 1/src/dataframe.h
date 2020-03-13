@@ -2,225 +2,18 @@
 
 #include "string.h"
 #include "object.h"
-#include "array.h"
+#include "wrapper.h"
+#include "arraytemplate.h"
 #include "helper.h"
 #include "string_to_char_map.h"
 #include "column.h"
-#include "kvstore.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "parser.h"
 
-class RowArray;
-class ColumnArray;
-
-/**
- * Incomplete implementation of Column Array. No methods overriden from
- * Array. Created for testing purposes, so we can design tests. 
- **/
-class ColumnArray : public Object {
-  public:
-      Array* col_arr;
-
-      /**
-       * Default constructor which will set the initial max-capacity to the array to 10. 
-       **/
-      ColumnArray() {
-          col_arr = new Array();
-      }
-
-      /**
-       * Initalized this array with the characteristics of the passed in array.
-       * @arg arr Array containing values to be used in initialization. 
-       **/
-      ColumnArray(ColumnArray* arr) {
-          col_arr = arr->col_arr;
-      }
-
-      /**
-       * Destructor which will free the memory of the underlying array as well. 
-       **/
-      ~ColumnArray() {
-          delete col_arr;
-      }
-
-      /**
-       * Will return the Column pointer at the provided index. if the index is invalid, 
-       * then the method will return NULL.
-       * @arg index Location to get the value in the array at. 
-       **/
-      Column* get(size_t index) {
-          return static_cast <Column*> (col_arr->get(index));
-      }
-
-
-      /**
-       * Clears the array and reinitializes the underlying array to 10 spots with no elements. 
-       * Reinitializes the size to 0. 
-       **/
-      void clear() {
-          col_arr->clear();
-      }
-
-      /**
-       * Resizing the underlying array. And then copying over the elements to a new array with
-       * the updated size. 
-       * Default is doubling the array size when the max capacity of the 
-       * underlying array less the number of elements is 2. 
-       **/
-      void resize() {
-          col_arr->resize();
-      }
-
-      /**
-       * Returns the first index of the of given Column pointer. 
-       * If the pointer is not a Column, return -1. 
-       * If the Column pointer is not found then -1 is returned.
-       * @arg to_find Column to find the index of. 
-       **/
-      int indexOf(Object* to_find) {
-          return col_arr->indexOf(to_find);
-      }
-
-      /**
-       * Adds the element provided to the end of the list, unless the given element is NULL, 
-       * then it will not be added. The size is incremented by 1. If resizing the array is necessary, 
-       * then that should be done.
-       * @arg to_add Object to be added to the array. 
-       **/
-      void add(Column* to_add) {
-          return col_arr->add(to_add);
-      }
-
-  /**
-   * Adds the provided array to the end of the list, unless the given array is NULL, 
-   * then it will not be added. 
-   * Assuming a valid move, the size of this array is incremented by the size of the 
-   * added array. If resizing the array is necessary, then that should be done.
-   * @arg to_add Array of Column that all need to be added to this array. 
-   **/
-    void addAll(ColumnArray* to_add) {
-        return col_arr->addAll(to_add->col_arr);
-    }
-
-  /**
-   * Adds the provided Column at the given index, unless the given object is NULL, 
-   * then it will not be added. Otherwise, all elements previously at the index and
-   * to the right will be shifted accordingly. 
-   * If the index is invalid, then nothing will be added/shifted. 
-   * The size of this array is incremented by 1. 
-   * If resizing the array is necessary, then that should be done.
-   * If the object provided is not a Column, then do nothing.  
-   * @arg to_add Object to be added to the array
-   * @arg index Location to add the Object at
-   **/
-    void add(Column* to_add, size_t index) {
-        return col_arr->add(to_add, index);
-    }
-
-  /**
-   * Adds all the elements of the provided array at the given index, 
-   * unless the given array is NULL, then it will not be added. Otherwise, 
-   * all elements previously at the index and
-   * to the right will be shifted accordingly by the size of the procided array, 
-   * If the index is invalid, then nothing will be added/shifted.
-   * Assuming a valid move, the size of this array is incremented by the size of the 
-   * added array.  If resizing the array is necessary, then that should be done.
-   * @arg to_add Array of Objects to be added to the array
-   * @arg index Location to add the objects to the array at
-   **/
-    void addAll(ColumnArray* to_add, size_t index) {
-      col_arr->addAll(to_add->col_arr, index);
-    }
-
-  /**
-   * Returns the subarray starting from the provided index to the end of the array. 
-   * If the index is invalid, then the method returns NULL
-   * @arg index Starting place for the subarray
-   **/
-    ColumnArray* subArray(size_t index) {
-      ColumnArray* returning = new ColumnArray();
-      if (index > getSize()) {
-          return NULL;
-      }
-      while(index < getSize()) {
-          returning->add(get(index));
-          index += 1;
-      }
-      return returning;
-    }
-
-  /**
-   * Returns the subarray starting from the provided index to the ending index
-   * The starting index must always be greater than the ending index. If either index is invalid, 
-   * then NULL is returned. The set is [start, end)
-   * @arg startIndex starting place for the subarray
-   * @arg endIndex location of the last object to be put in the subarray
-   **/
-    ColumnArray* subArray(size_t startIndex, size_t endIndex) {
-      ColumnArray* returning = new ColumnArray();
-      if (endIndex > getSize() || startIndex > endIndex) {
-          return NULL;
-      }
-      while(startIndex < endIndex) {
-          returning->add(get(startIndex));
-          startIndex += 1;
-      }
-      return returning;
-    }
-
-  /**
-   * Removes the first instance of the given Object in this array. If nothing 
-   * is found, then no action will occur. The size reduces by 1 if the 
-   * element is found.
-   * If the object to be removed is not a Column, do nothing. 
-   * @arg to_remove Column to be removed from the array
-   **/
-    void remove(Object* to_remove) {
-        col_arr->remove(to_remove);
-    }
-
-  /**
-   * Removes all instances of the given Object in this array. If nothing 
-   * is found, then no action will occur. The size reduces the number of found
-   * elements there are.
-   * If the object to remove is not a Column, do nothing. 
-   * @arg to_remove Column that all instances in the array will be removed of
-   **/
-    void removeAll(Object* to_remove) {
-        col_arr->removeAll(to_remove);
-    }
-
-  /**
-   * Returns number of elements in the array. 
-   **/
-    size_t getSize() {
-        return col_arr->getSize();
-    }
-
-  /**
-   * Overriding the Column equals method. 
-   * Returns if all the elements in this array and the given object are equal and 
-   * in the same other. 
-   * If the given object is NULL or not an array, then false will be returned.
-   * @arg other Object to check if this array is equal to
-   **/
-  bool equals(Object* other) {
-      ColumnArray* o = dynamic_cast<ColumnArray*> (other);
-      return o->col_arr->equals(this->col_arr);
-  }
-
-  /**
-   * Overriding the Object hash_me() method. 
-   * Hashes the array based on user specifications. Default implementation is
-   * to hash all internal elements and sum them up. 
-   **/
-  size_t hash_me_() {
-      return col_arr->hash() + 1;
-  }
-
-};
- 
+class Key; 
+class KVStore;
  
 /*************************************************************************
  * Schema::
@@ -231,7 +24,7 @@ class ColumnArray : public Object {
  */
 class Schema : public Object {
  public:
-  StringArray* types;
+  Array<String*>* types;
 
  
   /** Copying constructor */
@@ -241,7 +34,7 @@ class Schema : public Object {
  
   /** Create an empty schema **/
   Schema() {
-    types = new StringArray();
+    types = new Array<String*>();
   }
  
   /** Create a schema from a string of types. A string that contains
@@ -249,7 +42,7 @@ class Schema : public Object {
     * undefined behavior. The argument is external, a nullptr argument is
     * undefined. **/
   Schema(const char* types) {
-    this->types = new StringArray();
+    this->types = new Array<String*>();
     int x = 0;
     while (types[x] != '\0') {
       add_column(x);
@@ -266,7 +59,7 @@ class Schema : public Object {
  
   /** Return type of column at idx. An idx >= width is undefined. */
   char col_type(size_t idx) {
-    return *(types->get(idx))->c_str();
+    return types->get(idx)->c_str()[0];
   }
  
   /** The number of columns */
@@ -343,12 +136,12 @@ public:
 class Row : public Object {
  public:
   Schema* scm;
-  Array* row_;
+  Array<Object*>* row_;
  
   /** Build a row following a schema. */
   Row(Schema& scm) {
     this->scm = &scm;
-    row_ = new Array();
+    row_ = new Array<Object*>();
   }
 
  
@@ -446,213 +239,6 @@ class Row : public Object {
   }
  
 };
-
-/**
- * Incomplete implementation of Row Array. No methods overriden from
- * Array. Created for testing purposes, so we can design tests. 
- **/
-class RowArray : public Object {
-  public:
-      Array* str_arr;
-
-      /**
-       * Default constructor which will set the initial max-capacity to the array to 10. 
-       **/
-      RowArray() {
-          str_arr = new Array();
-      }
-
-      /**
-       * Initalized this array with the characteristics of the passed in array.
-       * @arg arr Array containing values to be used in initialization. 
-       **/
-      RowArray(RowArray* arr) {
-          str_arr = arr->str_arr;
-      }
-
-      /**
-       * Destructor which will free the memory of the underlying array as well. 
-       **/
-      ~RowArray() {
-          delete str_arr;
-      }
-
-      /**
-       * Will return the Row pointer at the provided index. if the index is invalid, 
-       * then the method will return NULL.
-       * @arg index Location to get the value in the array at. 
-       **/
-      Row* get(size_t index) {
-          return static_cast <Row*> (str_arr->get(index));
-      }
-
-
-      /**
-       * Clears the array and reinitializes the underlying array to 10 spots with no elements. 
-       * Reinitializes the size to 0. 
-       **/
-      void clear() {
-          str_arr->clear();
-      }
-
-      /**
-       * Resizing the underlying array. And then copying over the elements to a new array with
-       * the updated size. 
-       * Default is doubling the array size when the max capacity of the 
-       * underlying array less the number of elements is 2. 
-       **/
-      void resize() {
-          str_arr->resize();
-      }
-
-      /**
-       * Returns the first index of the of given Row pointer. 
-       * If the pointer is not a Row, return -1. 
-       * If the Row pointer is not found then -1 is returned.
-       * @arg to_find Row to find the index of. 
-       **/
-      int indexOf(Object* to_find) {
-          return str_arr->indexOf(to_find);
-      }
-
-      /**
-       * Adds the element provided to the end of the list, unless the given element is NULL, 
-       * then it will not be added. The size is incremented by 1. If resizing the array is necessary, 
-       * then that should be done.
-       * @arg to_add Object to be added to the array. 
-       **/
-      void add(Row* to_add) {
-          return str_arr->add(to_add);
-      }
-
-  /**
-   * Adds the provided array to the end of the list, unless the given array is NULL, 
-   * then it will not be added. 
-   * Assuming a valid move, the size of this array is incremented by the size of the 
-   * added array. If resizing the array is necessary, then that should be done.
-   * @arg to_add Array of Row that all need to be added to this array. 
-   **/
-    void addAll(RowArray* to_add) {
-        return str_arr->addAll(to_add->str_arr);
-    }
-
-  /**
-   * Adds the provided Row at the given index, unless the given object is NULL, 
-   * then it will not be added. Otherwise, all elements previously at the index and
-   * to the right will be shifted accordingly. 
-   * If the index is invalid, then nothing will be added/shifted. 
-   * The size of this array is incremented by 1. 
-   * If resizing the array is necessary, then that should be done.
-   * If the object provided is not a Row, then do nothing.  
-   * @arg to_add Object to be added to the array
-   * @arg index Location to add the Object at
-   **/
-    void add(Row* to_add, size_t index) {
-        return str_arr->add(to_add, index);
-    }
-
-  /**
-   * Adds all the elements of the provided array at the given index, 
-   * unless the given array is NULL, then it will not be added. Otherwise, 
-   * all elements previously at the index and
-   * to the right will be shifted accordingly by the size of the procided array, 
-   * If the index is invalid, then nothing will be added/shifted.
-   * Assuming a valid move, the size of this array is incremented by the size of the 
-   * added array.  If resizing the array is necessary, then that should be done.
-   * @arg to_add Array of Objects to be added to the array
-   * @arg index Location to add the objects to the array at
-   **/
-    void addAll(RowArray* to_add, size_t index) {
-      str_arr->addAll(to_add->str_arr, index);
-    }
-
-  /**
-   * Returns the subarray starting from the provided index to the end of the array. 
-   * If the index is invalid, then the method returns NULL
-   * @arg index Starting place for the subarray
-   **/
-    RowArray* subArray(size_t index) {
-      RowArray* returning = new RowArray();
-      if (index > getSize()) {
-          return NULL;
-      }
-      while(index < getSize()) {
-          returning->add(get(index));
-          index += 1;
-      }
-      return returning;
-    }
-
-  /**
-   * Returns the subarray starting from the provided index to the ending index
-   * The starting index must always be greater than the ending index. If either index is invalid, 
-   * then NULL is returned. The set is [start, end)
-   * @arg startIndex starting place for the subarray
-   * @arg endIndex location of the last object to be put in the subarray
-   **/
-    RowArray* subArray(size_t startIndex, size_t endIndex) {
-      RowArray* returning = new RowArray();
-      if (endIndex > getSize() || startIndex > endIndex) {
-          return NULL;
-      }
-      while(startIndex < endIndex) {
-          returning->add(get(startIndex));
-          startIndex += 1;
-      }
-      return returning;
-    }
-
-  /**
-   * Removes the first instance of the given Object in this array. If nothing 
-   * is found, then no action will occur. The size reduces by 1 if the 
-   * element is found.
-   * If the object to be removed is not a Row, do nothing. 
-   * @arg to_remove Row to be removed from the array
-   **/
-    void remove(Object* to_remove) {
-        str_arr->remove(to_remove);
-    }
-
-  /**
-   * Removes all instances of the given Object in this array. If nothing 
-   * is found, then no action will occur. The size reduces the number of found
-   * elements there are.
-   * If the object to remove is not a Row, do nothing. 
-   * @arg to_remove Row that all instances in the array will be removed of
-   **/
-    void removeAll(Object* to_remove) {
-        str_arr->removeAll(to_remove);
-    }
-
-  /**
-   * Returns number of elements in the array. 
-   **/
-    size_t getSize() {
-        return str_arr->getSize();
-    }
-
-  /**
-   * Overriding the Row equals method. 
-   * Returns if all the elements in this array and the given object are equal and 
-   * in the same other. 
-   * If the given object is NULL or not an array, then false will be returned.
-   * @arg other Object to check if this array is equal to
-   **/
-  bool equals(Object* other) {
-      RowArray* o = dynamic_cast<RowArray*> (other);
-      return o->str_arr->equals(this->str_arr);
-  }
-
-  /**
-   * Overriding the Object hash_me() method. 
-   * Hashes the array based on user specifications. Default implementation is
-   * to hash all internal elements and sum them up. 
-   **/
-  size_t hash_me_() {
-      return str_arr->hash() + 1;
-  }
-
-};
  
 /*******************************************************************************
  *  Rower::
@@ -688,15 +274,15 @@ class Rower : public Object {
 class DataFrame : public Object {
  public:
   Schema scm;
-  ColumnArray* columns_;
-  RowArray* row_arr_;
+  Array<Column*>* columns_;
+  Array<Row*>* row_arr_;
  
   /** Create a data frame with the same columns as the given df but with no rows or rownmaes */
   DataFrame(DataFrame& df) {
     Schema scm("");
     Schema scmCoppying = df.get_schema();
-    row_arr_ = new RowArray();
-    columns_ = new ColumnArray();
+    row_arr_ = new Array<Row*>();
+    columns_ = new Array<Column*>();
     for (int i = 0; i < df.ncols(); i++) {
       char col_type = scmCoppying.col_type(i);
       scm.add_column(col_type);
@@ -721,8 +307,8 @@ class DataFrame : public Object {
     * empty. */
   DataFrame(Schema& schema) {
     scm = schema;
-    columns_ = new ColumnArray();
-    row_arr_ = new RowArray();
+    columns_ = new Array<Column*>();
+    row_arr_ = new Array<Row*>();
     for (int i = 0; i < scm.width(); i++) {
       switch(scm.col_type(i)) {
         case 'F':
@@ -750,7 +336,7 @@ class DataFrame : public Object {
   /** Adds a column this dataframe, updates the schema, the new column
     * is external, and appears as the last column of the dataframe, the
     * name is optional and external. A nullptr colum is undefined. */
-  void add_column(Column* col, String* name) {
+  void add_column(Column* col) {
     while (row_arr_->getSize() < col->size()) {
       row_arr_->add(new Row(scm));
     }
@@ -926,6 +512,22 @@ class DataFrame : public Object {
 
   }
 
-
-
+  static DataFrame* fromFile(char* filename) {
+    Schema s;
+    DataFrame* df = new  DataFrame(s);
+    FILE* file = fopen(filename, "r");
+    fseek(file, 0, SEEK_END);
+    size_t file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    SorParser parser{file, 0, file_size, file_size};
+    parser.guessSchema();
+    parser.parseFile();
+    ColumnSet* set = parser.getColumnSet();
+    for (int x = 0; x < set->getLength(); x++) {
+      char* str_name = new char[33];
+      sprintf(str_name, "%d", x); 
+      df->add_column(set->getColumn(x));
+    }
+    return df;
+  }
 };

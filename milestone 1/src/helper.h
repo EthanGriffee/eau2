@@ -1,7 +1,6 @@
 #pragma once
 //lang::Cpp
 
-#include "serial.h"
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -10,7 +9,7 @@
  *  functions. This class has no data, constructors, destructors or
  *  virtual functions. Inheriting from it is zero cost.
  */
-class Sys : public Serialize{
+class Sys {
  public:
 
   // Printing functions
