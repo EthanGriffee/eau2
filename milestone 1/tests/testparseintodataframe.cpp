@@ -3,9 +3,10 @@
 
 
 void test1() {
-    DataFrame* x = DataFrame::fromFile("data/datafile.txt");
+    DataFrame* x = DataFrame::fromFile("../data/datafile.txt");
     x->t_true(x->ncols() == 11);
     x->t_true(x->nrows() == 3466664);
+    x->p(x->columns_->get(0)->get_type());
     delete x;
 }
 

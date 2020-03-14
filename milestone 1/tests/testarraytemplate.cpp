@@ -73,10 +73,30 @@ class TestArrayMethods {
         delete b;
         delete c;
         delete d;
+        delete s;
         delete arr;
         delete arr2;
         delete arr3;
         delete arr4;
+        delete s1;
+        delete s2;
+        delete s3;
+        delete s4;
+        delete starr;
+        delete starr2;
+        delete starr3;
+        delete iarr;
+        delete farr;
+        delete barr;
+        delete iarr2;
+        delete farr2;
+        delete barr2;
+        delete iarr3;
+        delete farr3;
+        delete barr3;
+        delete iarr4;
+        delete farr4;
+        delete barr4;
     }
 
 
@@ -140,7 +160,7 @@ class TestArrayMethods {
         s->t_true(arr->get(3)->equals(b));
         s->t_true(arr->getSize() == 4);
         s->pln("Add All works in middle");
-    clear();
+        clear();
 
 }
 
@@ -185,16 +205,7 @@ class TestArrayMethods {
         starr3->add(s3);
         starr3->add(s3);
         s->t_true(starr3->getSize() == 5);
-        starr3->removeAll(s3);
-        s->t_true(starr3->getSize() == 2);
-        s = (String*) starr3->get(0);
-        s->t_true(s->equals(s1));
-        starr3->remove(s1);
-        s->t_true(starr3->getSize() == 1);
-        s = (String*) starr3->get(0);
-        s->t_true(s->equals(s2));
         s->pln("Basic String Array Functions work");
-        delete s;
         clear();
     }
     

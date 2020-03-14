@@ -138,6 +138,10 @@ class IntColumn : public Column {
   size_t size() {
     return arr_->getSize();
   }
+
+  ~IntColumn() {
+    delete arr_;
+  }
 };
  
 // Other primitive column classes similar...
@@ -175,6 +179,10 @@ class StringColumn : public Column {
   size_t size() {
     return arr_->getSize();
   }
+
+  ~StringColumn() {
+    delete arr_;
+  }
 };
 
 /*************************************************************************
@@ -209,6 +217,10 @@ class BoolColumn : public Column {
   size_t size() {
     return arr_->getSize();
   }
+
+  ~BoolColumn() {
+    delete arr_;
+  }
 };
 
 /*************************************************************************
@@ -242,6 +254,10 @@ class DoubleColumn : public Column {
 
   size_t size() {
     return arr_->getSize();
+  }
+    
+  ~DoubleColumn() {
+    delete arr_;
   }
 };
 

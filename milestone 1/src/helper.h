@@ -72,37 +72,4 @@ class Sys {
     *(pointer+len) = '\0';
     return pointer;
   }
-
-  int parseUntilSeperator(char* c, int start_pos) {
-    int y = 0;
-    while (c[start_pos + y] != '|') {
-        y += 1;
-    }
-    return y;
-  }
-
-  int parseUntilClassSeperator(char* c, int start_pos) {
-    int y = 0;
-    int lcount = 0;
-    int rcount = 0;
-    while (c[start_pos + y] != '}' || lcount - 1 != rcount) {
-      if (c[start_pos + y] == '}') {
-        rcount += 1;
-      }
-      if (c[start_pos + y] == '{') {
-        lcount += 1;
-      }
-      y += 1;
-    }
-    return y + 1;
-  }
-
-
-  int parseUntilBracketSeperator(char* c, int start_pos) {
-    int y = 0;
-    while (c[start_pos + y] != ']') {
-        y += 1;
-    }
-    return y;
-  }
 };

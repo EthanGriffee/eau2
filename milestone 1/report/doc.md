@@ -1,16 +1,37 @@
-Introduction
+# Introduction
 
+The eau2 system is a distributed key/value store for big data analysis that can run machine learning algorithms to query for specific chunks of data from a distributed array. 
 
-Architecture
+# Architecture
 
+Eau2 has three layers to it:
 
-Implementation
+* The bottom layer (network layer), consist of the distributed KV stores running on multiple nodes such that each of them have access to some part of the data and can communicate with each other to request and transfer data as and when needed.
+* The middle layer provides abstraction in the form of distributed arrays and data frames that are used to store the data and represent them in a structured form if and when quered for.
+* The top layer is the application layer where users write code and can query for data.
 
+# Implementation
 
-Use cases
+We implemented the following classes as we believe they are needed for the development of the eau2 system:
 
+* **dataframe.h** - we use this to store and display the data after it parsed from a file.
+* **parser.h** (the code is borrowed from team 4200NE) - we use this to parse SoR data from a file into our dataframe.
+* **arraytemplate.h** - we use this to store any type of data, a template was decided to be used instead of array classes to reduce clutter. 
+* **string.h** - we use it to manupilate strings in our code.
+* **object.h** - we use it to manupilate different datatypes in our code.
 
-Open questions
+# Use cases
 
+One of the use cases of the eau2 system is that it can be trained to behave like a generic database wherein we can parse and store data from a file such that users can request for queries and the system will respond back with the appropiate data.
 
-Status :
+# Open questions
+
+What kind of machine learning algorithims are expected to be implemented / Use cases for them.
+
+Are values in Key Value pairs serialized DataFrames?
+
+# Status
+
+* We cleaned our code and implemented the classes mentioned above.
+* We ran valgrind on our old code to test for memory leaks. Subsequently, we did our best to fix them
+* We created a MakeFile that will run and test our dataframe class.

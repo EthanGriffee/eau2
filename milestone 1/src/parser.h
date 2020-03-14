@@ -103,14 +103,14 @@ class StrSlice : public Object {
     }
 
     /**
-     * Parses the contents of this slice as a float.
-     * @return The float
+     * Parses the contents of this slice as a double.
+     * @return The double
      */
-    virtual float toDouble() {
-        // It's hard to roll a float parsing function by hand, so bite the bullet and allocate a
+    virtual double toDouble() {
+        // It's hard to roll a double parsing function by hand, so bite the bullet and allocate a
         // null-terminated string for atof.
         char* cstr = toCString();
-        float result = atof(cstr);
+        double result = atof(cstr);
         delete[] cstr;
         return result;
     }
@@ -327,7 +327,7 @@ class SorParser : public Object {
     static const char MINUS = '-';
 
     /**
-     * Checks if the given char could be part of an integer or float field.
+     * Checks if the given char could be part of an integer or double field.
      */
     static bool isNumeric(char c) {
         return c == MINUS || c == PLUS || c == DOT || (c >= '0' && c <= '9');
@@ -419,7 +419,7 @@ class SorParser : public Object {
         }
 
         // Check if the slice consists of only numeric chars
-        // and specifically whether it has a . (indicating float)
+        // and specifically whether it has a . (indicating double)
         bool is_numeric = false;
         bool has_dot = false;
         for (size_t i = 0; i < slice.getLength(); i++) {
@@ -435,21 +435,21 @@ class SorParser : public Object {
         // seen a non-numeric entry already
         if (_typeGuesses[field_num] != ColumnType::STRING) {
             if (is_numeric && !has_dot) {
-                // If it's an integer (not float), check if it's 0 or 1, which would indicate a
+                // If it's an integer (not double), check if it's 0 or 1, which would indicate a
                 // bool column
                 int val = slice.toInt();
                 if ((val == 0 || val == 1) && _typeGuesses[field_num] != ColumnType::INTEGER &&
                     _typeGuesses[field_num] != ColumnType::DOUBLE) {
                     // Only keep the bool column guess if we haven't already guessed integer or
-                    // float (because that means we have seen non-bool values)
+                    // double (because that means we have seen non-bool values)
                     _typeGuesses[field_num] = ColumnType::BOOL;
                 } else if (_typeGuesses[field_num] != ColumnType::DOUBLE) {
-                    // Use integer guess only if we didn't already guess float (which could not be
+                    // Use integer guess only if we didn't already guess double (which could not be
                     // parsed as integer)
                     _typeGuesses[field_num] = ColumnType::INTEGER;
                 }
             } else if (is_numeric && has_dot) {
-                // If there's a dot, this must be a float column
+                // If there's a dot, this must be a double column
                 _typeGuesses[field_num] = ColumnType::DOUBLE;
             } else {
                 // If there are non-numeric chars then this must be a string column

@@ -5,7 +5,6 @@
 #include "wrapper.h"
 #include "arraytemplate.h"
 #include "helper.h"
-#include "string_to_char_map.h"
 #include "column.h"
 #include <stdarg.h>
 #include <stdio.h>
@@ -519,15 +518,14 @@ class DataFrame : public Object {
     fseek(file, 0, SEEK_END);
     size_t file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
-    SorParser parser{file, 0, file_size, file_size};
-    parser.guessSchema();
-    parser.parseFile();
-    ColumnSet* set = parser.getColumnSet();
+    SorParser* parser = new SorParser{file, 0, file_size, file_size};
+    parser->guessSchema();
+    parser->parseFile();
+    ColumnSet* set = parser->getColumnSet();
     for (int x = 0; x < set->getLength(); x++) {
-      char* str_name = new char[33];
-      sprintf(str_name, "%d", x); 
       df->add_column(set->getColumn(x));
     }
+    delete parser;
     return df;
   }
 };
