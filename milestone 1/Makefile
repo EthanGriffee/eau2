@@ -1,19 +1,21 @@
 build:
 	g++ -std=c++11 -o tests/testarray tests/testarraytemplate.cpp
 	g++ -std=c++11 -o tests/testcolumn tests/testcolumn.cpp
+	g++ -std=c++11 -o tests/testdataframe tests/testdataframe.cpp
 	g++ -std=c++11 -o tests/testparseintodataframe tests/testparseintodataframe.cpp
 	g++ -std=c++11 -o data/generate data/generate.cpp
 
 
 test:
-	data/generate
-	mv ./datafile.txt ./data/datafile.txt
+	data/generate data/small_datafile.txt 5
 	tests/testarray
 	tests/testcolumn
 	tests/testdataframe
+	tests/testparseintodataframe
 
-valg:
+valgrind:
 	data/generate
-	mv ./datafile.txt ./data/datafile.txt
 	valgrind tests/testarray
+	valgrind tests/testdataframe
+	valgrind tests/testcolumn
 	valgrind tests/testparseintodataframe

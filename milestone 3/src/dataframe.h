@@ -10,6 +10,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
+
+class Key;
+class KDStore;
  
 /*************************************************************************
  * Schema::
@@ -63,65 +66,24 @@ class Schema : public Object {
     return types->getSize();
   }
 
+  char* serialize() {
+    char* buff = new char[1024];
+    sprintf(buff, "{SCHEMA|types=%s}", types->serialize());
+    return buff;
+  }
+
+  static Schema* deserialize(char* s) {
+    int x = 14;
+    Schema* returning = new Schema();
+    assert(strcmp(returning->substring(s, 0, x), "{SCHEMA|types=") == 0);
+    int y = returning->parseUntilClassSeperator(s, x);
+    char* c = returning->substring(s, x, y);
+    returning->types = Array<char>::deserialize_chararray(c);
+    return returning;
+  }
+
   ~Schema() {
     delete types;
-  }
-};
- 
-/*****************************************************************************
- * Fielder::
- * A field vistor invoked by Row.
- */
-class Fielder : public Object {
-public:
-
-  /** Called before visiting a row, the argument is the row offset in the
-    dataframe. */
-  virtual void start(size_t r) {
-
-  }
- 
-  /** Called for fields of the argument's type with the value of the field. */
-  virtual void accept(bool b) {
-
-  }
-
-  virtual void accept(double f) {
-
-  }
-
-  virtual void accept(int i) {
-
-  }
-
-  virtual void accept(String* s) {
-
-  }
-
-  virtual void accept_(BoolObj* b) {
-    accept(b->getBool());
-  }
-
-  virtual void accept_(DoubleObj* f) {
-    accept(f->getDouble());
-  }
-
-  virtual void accept_(IntObj* i) {
-    accept(i->getInt());
-  }
-
-  virtual void accept_(Object* obj) {
-    perror("calling accept on an Object that is not a Bool, Double, Int, or String");
-    exit(1);
-  }
-
-  virtual void accept_(String* s) {
-    accept(s);
-  }
- 
-  /** Called when all fields have been seen. */
-  virtual void done() {
-
   }
 };
 
@@ -233,16 +195,6 @@ class Row : public Object {
     return  scm->col_type(idx);
   }
  
-  /** Given a Fielder, visit every field of this row. The first argument is
-    * index of the row in the dataframe.
-    * Calling this method before the row's fields have been set is undefined. */
-  void visit(size_t idx, Fielder& f) {
-    for (int x = 0; x < width(); x++) {
-      f.accept_(row_.get(x));
-    }
-    f.done();
-  }
- 
 };
  
 /*******************************************************************************
@@ -313,7 +265,7 @@ class DataFrame : public Object {
     columns_ = new Array<Column*>();
     for (int i = 0; i < scm->width(); i++) {
       switch(scm->col_type(i)) {
-        case 'F':
+        case 'D':
           columns_->add(new DoubleColumn());
           break;
         case 'B':
@@ -366,19 +318,19 @@ class DataFrame : public Object {
     * If the column is not  of the right type or the indices are out of
     * bound, the result is undefined. */
   void set_int(size_t col, size_t row, int val) {
-    columns_->get(row)->as_int()->set(col, val);
+    columns_->get(col)->as_int()->set(row, val);
   }
 
   void set_bool(size_t col, size_t row, bool val) {
-    columns_->get(row)->as_bool()->set(col, val);
+    columns_->get(col)->as_bool()->set(row, val);
   }
 
   void set_double(size_t col, size_t row, double val) {
-    columns_->get(row)->as_double()->set(col, val);
+    columns_->get(col)->as_double()->set(row, val);
   }
 
   void set_string(size_t col, size_t row, String* val) {
-    columns_->get(row)->as_string()->set(col, val);
+    columns_->get(col)->as_string()->set(row, val);
   }
  
   /** Set the fields of the given row object with values from the columns at
@@ -474,7 +426,7 @@ class DataFrame : public Object {
     return n;
   }
 
-  static DataFrame* fromFile(char* filename) {
+  DataFrame* fromFile(char* filename) {
     Schema s;
     DataFrame* df = new  DataFrame(s);
     FILE* file = fopen(filename, "r");
@@ -486,10 +438,37 @@ class DataFrame : public Object {
     parser->parseFile();
     ColumnSet* set = parser->getColumnSet();
     for (int x = 0; x < set->getLength(); x++) {
-      df->add_column(set->getColumn(x));
+    df->add_column(set->getColumn(x));
     }
     delete parser;
     return df;
+  }
+
+  static DataFrame* fromArray(Key* key, KDStore* kv, size_t size, Array<double>* vals);
+
+
+  static DataFrame* deserialize(char* des) {
+    Sys s;
+    int x = 18;
+    int y;
+    assert(strcmp(s.substring(des, 0, x), "{DATAFRAME|schema=") == 0);
+    y = s.parseUntilClassSeperator(des, x);
+    char* c = s.substring(des, x, y);
+    Schema* scm = Schema::deserialize(c);
+    DataFrame* newFrame =  new DataFrame(*scm);
+    x = x + y + 1;
+    assert(strcmp(s.substring(des, x, 9), "columns_=") == 0);
+    x = x + 9;
+    y = s.parseUntilClassSeperator(des, x);
+    c = s.substring(des, x, y);
+    newFrame->columns_ = Array<Column>::deserialize_columnarray(c);
+    return newFrame;
+  }
+
+  char* serialize() {
+    char* buff = new char[2048];
+    sprintf(buff, "{DATAFRAME|schema=%s|columns_=%s}}", get_schema().serialize(), columns_->serialize()); 
+    return buff;
   }
 
   ~DataFrame() {

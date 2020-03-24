@@ -103,6 +103,12 @@ class Column : public Object {
       exit(1);
     }
   }
+
+  virtual char* serialize() {
+    assert(1 == 0);
+  }
+
+  static Column* deserialize(char* s);
 };
  
 /*************************************************************************
@@ -137,6 +143,16 @@ class IntColumn : public Column {
 
   size_t size() {
     return arr_->getSize();
+  }
+
+  virtual char* serialize() {
+    char* buff = new char[2048];
+    sprintf(buff, "{INTCOLUMN|arr_=%s}", arr_->serialize()); 
+    return buff;
+  }
+
+  static IntColumn* deserialize(char* s) {
+
   }
 
   ~IntColumn() {
@@ -180,6 +196,16 @@ class StringColumn : public Column {
     return arr_->getSize();
   }
 
+  virtual char* serialize() {
+    char* buff = new char[2048];
+    sprintf(buff, "{STRINGCOLUMN|arr_=%s}", arr_->serialize()); 
+    return buff;
+  }
+
+  static StringColumn* deserialize(char* s) {
+    
+  }
+
   ~StringColumn() {
     for (int x = 0; x < arr_->getSize(); x++) {
       delete arr_->get(x);
@@ -221,6 +247,22 @@ class BoolColumn : public Column {
     return arr_->getSize();
   }
 
+  virtual char* serialize() {
+    char* buff = new char[2048];
+    sprintf(buff, "{BOOLCOLUMN|arr_=%s}", arr_->serialize()); 
+    return buff;
+  }
+
+  static BoolColumn* deserialize(char* s) {
+    int x = 17;
+    BoolColumn* returning = new BoolColumn();
+    assert(strcmp(returning->substring(s, 0, x), "{BOOLCOLUMN|arr_=") == 0);
+    int y = returning->parseUntilClassSeperator(s, x);
+    char* c = returning->substring(s, x, y);
+    returning->arr_ = Array<bool>::deserialize_boolarray(c);
+    return returning;
+  }
+
   ~BoolColumn() {
     delete arr_;
   }
@@ -257,6 +299,22 @@ class DoubleColumn : public Column {
 
   size_t size() {
     return arr_->getSize();
+  }
+
+  virtual char* serialize() {
+    char* buff = new char[2048];
+    sprintf(buff, "{DOUBLECOLUMN|arr_=%s}", arr_->serialize()); 
+    return buff;
+  }
+
+  static DoubleColumn* deserialize(char* s) {
+    int x = 19;
+    DoubleColumn* returning = new DoubleColumn();
+    assert(strcmp(returning->substring(s, 0, x), "{DOUBLECOLUMN|arr_=") == 0);
+    int y = returning->parseUntilClassSeperator(s, x);
+    char* c = returning->substring(s, x, y);
+    returning->arr_ = Array<bool>::deserialize_doublearray(c);
+    return returning;
   }
     
   ~DoubleColumn() {
@@ -345,3 +403,40 @@ class ColumnSet : public Object {
         return _columns[which];
     }
 };
+
+
+template <class arrayClass>
+Array<Column*>* Array<arrayClass>::deserialize_columnarray(char* s) {
+  Sys sys;
+  int y;
+  Array<Column*>* returning = new Array<Column*>();
+  const char* className = typeid(Column*).name();
+  char* buff = new char[2048];
+  sprintf(buff, "{Array|type=%s|array=", className);
+  int x = strlen(buff);
+  assert(strcmp(sys.substring(s, 0, x), buff) == 0);
+
+  while(s[x] == '{') {
+      y = sys.parseUntilClassSeperator(s, x);
+      char* c = sys.substring(s, x, y);
+      returning->add(Column::deserialize(c));
+      x += y;
+  }
+  return returning;
+}
+
+ Column* Column::deserialize(char* s) {
+  Sys sys;
+  if (strcmp(sys.substring(s, 1, 9), "INTCOLUMN") == 0) {
+    return IntColumn::deserialize(s);
+  }
+  else if (strcmp(sys.substring(s, 1, 12), "STRINGCOLUMN") == 0) {
+    return StringColumn::deserialize(s);
+  }
+  else if (strcmp(sys.substring(s, 1, 10), "BOOLCOLUMN") == 0) {
+    return BoolColumn::deserialize(s);
+  }
+  else if (strcmp(sys.substring(s, 1, 12), "DOUBLECOLUMN") == 0) {
+    return DoubleColumn::deserialize(s);
+  }
+}

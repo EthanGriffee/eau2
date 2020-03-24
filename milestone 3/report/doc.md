@@ -14,6 +14,7 @@ Eau2 has three layers to it:
 
 We implemented the following classes as we believe they are needed for the development of the eau2 system:
 
+* **kvstore.h** - we use this to hold the serialized dataframes
 * **dataframe.h** - we use this to store and display the data after it parsed from a file.
 * **parser.h** (the code is borrowed from team 4200NE) - we use this to parse SoR data from a file into our dataframe.
 * **arraytemplate.h** - we use this to store any type of data, a template was decided to be used instead of array classes to reduce clutter. 
@@ -29,7 +30,6 @@ One of the use cases of the eau2 system is that it can be trained to behave like
 # Open questions
 
 What kind of machine learning algorithims are expected to be implemented / Use cases for them.
-Are values in Key Value pairs serialized DataFrames?
 Can different Nodes hold the same dataframe?
 
 # Status
@@ -38,3 +38,4 @@ Can different Nodes hold the same dataframe?
 * We ran valgrind on our old code to test for memory leaks, and were fixed. The make valgrind command calls valgrind on the three test classes, proving this.
 * We created a MakeFile that will run and test our array and dataframe classes.
 * We created a static Method in DataFrame that creates a dataframe from a file location input.
+* Serialization / Deserialization was added for dataframes, columns, and certain arrays.
