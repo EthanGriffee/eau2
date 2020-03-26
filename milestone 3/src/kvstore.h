@@ -88,3 +88,7 @@ DataFrame* DataFrame::fromArray(Key* key, KDStore* kv, size_t size, Array<double
     kv->put(*key, n);
     return n;
 }
+
+DataFrame* DataFrame::fromScalar(Key* key, KDStore* kv, double val) {
+
+}

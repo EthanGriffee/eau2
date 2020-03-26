@@ -446,6 +446,8 @@ class DataFrame : public Object {
 
   static DataFrame* fromArray(Key* key, KDStore* kv, size_t size, Array<double>* vals);
 
+  static DataFrame* fromScalar(Key* key, KDStore* kv, double val);
+
 
   static DataFrame* deserialize(char* des) {
     Sys s;
@@ -464,6 +466,7 @@ class DataFrame : public Object {
     newFrame->columns_ = Array<Column>::deserialize_columnarray(c);
     return newFrame;
   }
+
 
   char* serialize() {
     char* buff = new char[2048];
