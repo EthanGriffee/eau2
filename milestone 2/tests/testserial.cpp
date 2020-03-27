@@ -90,7 +90,7 @@ void testColumnArraySerialization() {
 }
 
 void testDataFrameSerialization() {
-    Schema s("BF");
+    Schema s("BD");
     DataFrame df(s);
     Row  r(df.get_schema());
     for(size_t i = 0; i <  10; i++) {

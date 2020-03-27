@@ -1,6 +1,7 @@
 #pragma once
 #include "object.h"
 #include "string.h"
+#include <stdio.h>
 #include <math.h> 
 #include <limits>
 #include <type_traits>
@@ -31,7 +32,7 @@ bool equal(char* a, char* b) {
 template <typename FloatingType>
 typename std::enable_if<std::is_floating_point<FloatingType>::value, char*>::type
 serialize_element(const FloatingType& f) {
-    char a[1024];
+    char* a =  new char[1024];
     sprintf(a, "{%f}", f);
     return a;
 }
@@ -39,7 +40,7 @@ serialize_element(const FloatingType& f) {
 template <typename IntegralType>
 typename std::enable_if<std::is_integral<IntegralType>::value, char*>::type
 serialize_element(const IntegralType& i) {
-    char a[1024];
+    char* a =  new char[1024];
     sprintf(a, "{%c}", i);
     return a;
 }
@@ -284,7 +285,7 @@ public:
     }
 
     char* serialize() {
-        char* buff = new char[2048];
+        char* buff = new char[1024];
         sprintf(buff, "{Array|type=%s|array=", typeid(arrayClass).name());
         for(int x = 0; x < size; x++) {
              sprintf(&buff[strlen(buff)], "%s", serialize_element(this->get(x)));
@@ -298,7 +299,7 @@ public:
         int y;
         Array<double>* returning = new Array<double>();
         const char* className = typeid(double).name();
-        char* buff = new char[2048];
+        char* buff = new char[1024];
         sprintf(buff, "{Array|type=%s|array=", className);
         int x = strlen(buff);
         assert(strcmp(sys.substring(s, 0, x), buff) == 0);

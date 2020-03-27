@@ -8,6 +8,5 @@ test:
 	tests/testserial
 
 valgrind:
-	data/generate
 	valgrind --leak-check=yes tests/testtrivial
 	valgrind --leak-check=yes tests/testserial
