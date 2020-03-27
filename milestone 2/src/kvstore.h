@@ -55,6 +55,13 @@ class KVStore {
 
         }
 
+        ~KVStore() {
+            for (int x = 0; x < keys.getSize(); x++) {
+                delete keys.get(x);
+                delete vals.get(x);
+            }
+        }
+
 };
 
 class KDStore {

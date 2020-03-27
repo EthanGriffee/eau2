@@ -10,10 +10,12 @@ void testStringArraySerialization() {
     arr->add(new String("jack"));
     arr->add(new String("jill"));
     arr->add(new String("hill"));
-    Array<String*>* new_array = Array<String*>::deserialize_stringarray(arr->serialize());
+    char* serialized = arr->serialize();
+    Array<String*>* new_array = Array<String*>::deserialize_stringarray(serialized);
     arr->t_true(new_array->equals(arr));
     arr->delete_contents(); 
     new_array->delete_contents();
+    delete[] serialized;
     delete arr;
     delete new_array;
     arr->OK("String Array OK");
@@ -24,10 +26,12 @@ void testDoubleArraySerialization() {
     arr->add(241);
     arr->add(342.132343);
     arr->add(65.32);
-    Array<double>* new_array = Array<double>::deserialize_doublearray(arr->serialize());
+    char* serialized = arr->serialize();
+    Array<double>* new_array = Array<double>::deserialize_doublearray(serialized);
     arr->t_true(fabs(241 - new_array->get(0)) < .00001);
     arr->t_true(fabs(342.132343 - new_array->get(1)) < .00001);
     arr->t_true(fabs(65.32 - new_array->get(2)) < .00001);
+    delete[] serialized;
     delete new_array;
     delete arr;
     arr->OK("DoubleArray OK");
@@ -38,8 +42,10 @@ void testCharArraySerialization() {
     arr->add('a');
     arr->add('b');
     arr->add('c');
-    Array<char>* new_array = Array<char>::deserialize_chararray(arr->serialize());
+    char* serialized = arr->serialize();
+    Array<char>* new_array = Array<char>::deserialize_chararray(serialized);
     arr->t_true(new_array->equals(arr));
+    delete[] serialized;
     delete new_array;
     delete arr;
     arr->OK("CharArray OK");
@@ -50,8 +56,10 @@ void testBoolArraySerialization() {
     arr->add(true);
     arr->add(true);
     arr->add(false);
-    Array<bool>* new_array = Array<bool>::deserialize_boolarray(arr->serialize());
+    char* serialized = arr->serialize();
+    Array<bool>* new_array = Array<bool>::deserialize_boolarray(serialized);
     arr->t_true(new_array->equals(arr));
+    delete[] serialized;
     delete new_array;
     delete arr;
     arr->OK("BoolArray OK");
@@ -62,10 +70,12 @@ void testBoolColumnSerialization() {
     b->push_back(true);
     b->push_back(false);
     b->push_back(true);
-    BoolColumn* b2 = BoolColumn::deserialize(b->serialize());
+    char* serialized = b->serialize();
+    BoolColumn* b2 = BoolColumn::deserialize(serialized);
     b->t_true(b->get(0) == b2->get(0));
     b->t_true(b->get(1) == b2->get(1));
     b->t_true(b->get(2) == b2->get(2));
+    delete[] serialized;
     delete b;
     delete b2;
     b->OK("BoolColumn OK");
@@ -81,10 +91,12 @@ void testColumnArraySerialization() {
     d->push_back(3.14);
     d->push_back(12.12);
     arr->add(d);
-    Array<Column*>* new_array = Array<Column*>::deserialize_columnarray(arr->serialize());
-    b->OK("SerializingColumnArraus OK");
+    char* serialized = arr->serialize();
+    Array<Column*>* new_array = Array<Column*>::deserialize_columnarray(serialized);
+    b->OK("SerializingColumnArrays OK");
     arr->delete_contents();
     new_array->delete_contents();
+    delete[] serialized;
     delete arr;
     delete new_array;
 }
@@ -98,10 +110,13 @@ void testDataFrameSerialization() {
         r.set_double(1,3.14);
         df.add_row(r);
     }
-    DataFrame* newDataFrame = DataFrame::deserialize(df.serialize());
+    char* serialized = df.serialize();
+    DataFrame* newDataFrame = DataFrame::deserialize(serialized);
     s.t_true(newDataFrame->ncols() == df.ncols());
     s.t_true(newDataFrame->nrows() == df.nrows());
     s.t_true(newDataFrame->get_bool(0,0) == df.get_bool(0,0));
+    delete[] serialized;
+    delete newDataFrame;
     s.OK("Serializing Dataframes OK");
 }
 

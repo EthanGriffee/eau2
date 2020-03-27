@@ -49,8 +49,10 @@ char* serialize_element(char* a) {
     return a; 
 }
 
-char* serialize_element(bool a) {
-    return a ? strdup("{0}") : strdup("{1}"); 
+char* serialize_element(bool b) {
+    char* a =  new char[4];
+    sprintf(a, "{%i}", b ? 0 : 1);  
+    return a; 
 }
 
 char* serialize_element(Object* a) {
@@ -288,7 +290,9 @@ public:
         char* buff = new char[1024];
         sprintf(buff, "{Array|type=%s|array=", typeid(arrayClass).name());
         for(int x = 0; x < size; x++) {
-             sprintf(&buff[strlen(buff)], "%s", serialize_element(this->get(x)));
+            char* element = serialize_element(this->get(x));
+            sprintf(&buff[strlen(buff)], "%s", element);
+            delete[] element;
         } 
         sprintf(&buff[strlen(buff)], "|}");
         return buff;
@@ -302,14 +306,17 @@ public:
         char* buff = new char[1024];
         sprintf(buff, "{Array|type=%s|array=", className);
         int x = strlen(buff);
-        assert(strcmp(sys.substring(s, 0, x), buff) == 0);
-   
+        char* c = sys.substring(s, 0, x);
+        assert(strcmp(c, buff) == 0);
+        delete[] c;
         while(s[x] == '{') {
             y = sys.parseUntilClassSeperator(s, x);
-            char* c = sys.substring(s, x + 1, y - 1);
+            c = sys.substring(s, x + 1, y - 1);
             returning->add(atof(c));
             x += y;
+            delete[] c;
         }
+        delete[] buff;
         return returning;
     }
 
@@ -321,14 +328,18 @@ public:
         char* buff = new char[2048];
         sprintf(buff, "{Array|type=%s|array=", className);
         int x = strlen(buff);
-        assert(strcmp(sys.substring(s, 0, x), buff) == 0);
+        char* c = sys.substring(s, 0, x);
+        assert(strcmp(c, buff) == 0);
+        delete[] c;
    
         while(s[x] == '{') {
             y = sys.parseUntilClassSeperator(s, x);
-            char* c = sys.substring(s, x + 1, y - 2);
+            c = sys.substring(s, x + 1, y - 2);
             returning->add(strcmp(c, "0") == 0);
             x += y;
+            delete[] c;
         }
+        delete[] buff;
         return returning;
     }
 
@@ -340,14 +351,18 @@ public:
         char* buff = new char[2048];
         sprintf(buff, "{Array|type=%s|array=", className);
         int x = strlen(buff);
-        assert(strcmp(sys.substring(s, 0, x), buff) == 0);
+        char* c = sys.substring(s, 0, x);
+        assert(strcmp(c, buff) == 0);
+        delete[] c;
    
         while(s[x] == '{') {
             y = sys.parseUntilClassSeperator(s, x);
-            char* c = sys.substring(s, x, y);
+            c = sys.substring(s, x, y);
             returning->add(String::deserialize(c));
             x += y;
+            delete[] c;
         }
+        delete[] buff;
         return returning;
     }
 
@@ -359,14 +374,19 @@ public:
         char* buff = new char[2048];
         sprintf(buff, "{Array|type=%s|array=", className);
         int x = strlen(buff);
-        assert(strcmp(sys.substring(s, 0, x), buff) == 0);
+        char* c = sys.substring(s, 0, x);
+        assert(strcmp(c, buff) == 0);
+        delete[] c;
    
         while(s[x] == '{') {
             y = sys.parseUntilClassSeperator(s, x);
-            char* c = sys.substring(s, x + 1, y - 1);
+            c = sys.substring(s, x + 1, y - 1);
             returning->add(c[0]);
             x += y;
+            delete[] c;
         }
+
+        delete[] buff;
         return returning;
 
     }

@@ -68,17 +68,23 @@ class Schema : public Object {
 
   char* serialize() {
     char* buff = new char[1024];
-    sprintf(buff, "{SCHEMA|types=%s}", types->serialize());
+    char* ser_type = types->serialize();
+    sprintf(buff, "{SCHEMA|types=%s}", ser_type);
+    delete[] ser_type;
     return buff;
   }
 
   static Schema* deserialize(char* s) {
     int x = 14;
     Schema* returning = new Schema();
-    assert(strcmp(returning->substring(s, 0, x), "{SCHEMA|types=") == 0);
+    char* c = returning->substring(s, 0, x);
+    assert(strcmp(c, "{SCHEMA|types=") == 0);
+    delete[] c;
     int y = returning->parseUntilClassSeperator(s, x);
-    char* c = returning->substring(s, x, y);
+    c = returning->substring(s, x, y);
+    delete returning->types;
     returning->types = Array<char>::deserialize_chararray(c);
+    delete[] c;
     return returning;
   }
 
@@ -418,7 +424,6 @@ class DataFrame : public Object {
       this->fill_row(i, row);
       if (r.accept(row)) {
         Sys x;
-        x.p("fdsfds");
         
         n->add_row(row);
       }
@@ -451,23 +456,40 @@ class DataFrame : public Object {
     Sys s;
     int x = 18;
     int y;
-    assert(strcmp(s.substring(des, 0, x), "{DATAFRAME|schema=") == 0);
+
+    char* c = s.substring(des, 0, x);
+    assert(strcmp(c, "{DATAFRAME|schema=") == 0);
+    delete[] c;
     y = s.parseUntilClassSeperator(des, x);
-    char* c = s.substring(des, x, y);
+    c = s.substring(des, x, y);
     Schema* scm = Schema::deserialize(c);
     DataFrame* newFrame =  new DataFrame(*scm);
+    delete scm;
     x = x + y + 1;
-    assert(strcmp(s.substring(des, x, 9), "columns_=") == 0);
+    delete[] c;
+    c = s.substring(des, x, 9);
+    assert(strcmp(c, "columns_=") == 0);
+    delete[] c;
     x = x + 9;
     y = s.parseUntilClassSeperator(des, x);
     c = s.substring(des, x, y);
+    for (int i = 0; i < newFrame->ncols(); i++) {
+        delete newFrame->columns_->get(i);
+      }
+    delete newFrame->columns_;
     newFrame->columns_ = Array<Column>::deserialize_columnarray(c);
+    delete[] c;
     return newFrame;
   }
 
   char* serialize() {
     char* buff = new char[2048];
-    sprintf(buff, "{DATAFRAME|schema=%s|columns_=%s}}", get_schema().serialize(), columns_->serialize()); 
+    char* ser_schema = get_schema().serialize();
+    char* ser_col = columns_->serialize();
+    sprintf(buff, "{DATAFRAME|schema=%s|columns_=%s}}", ser_schema, ser_col);
+    Sys s;
+    delete[] ser_schema;
+    delete[] ser_col;
     return buff;
   }
 

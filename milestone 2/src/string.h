@@ -93,9 +93,14 @@ public:
     static String* deserialize(char* s) {
         Sys sys;
         int x = 14;
-        assert(strcmp(sys.substring(s, 0, x), "{String|cstr_=") == 0);
+        char* c = sys.substring(s, 0, x);
+        assert(strcmp(c, "{String|cstr_=") == 0);
+        delete[] c;
         int y = sys.parseUntilSeperator(s, x);
-        return new String(sys.substring(s, x, y));
+        c = sys.substring(s, x, y);
+        String* returning = new String(c);
+        delete[] c;
+        return returning;
     }
  };
 

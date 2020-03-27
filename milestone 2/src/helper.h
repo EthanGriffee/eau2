@@ -64,7 +64,7 @@ class Sys {
 
   //substring of char*
   char* substring(char* st, int pos, int len) {
-    char* pointer = new char[len];
+    char* pointer = new char[len + 1];
     for (int c = 0; c < len; c++) {
       *(pointer+c) = *(st+pos);
       st++;

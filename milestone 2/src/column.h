@@ -109,6 +109,8 @@ class Column : public Object {
   }
 
   static Column* deserialize(char* s);
+
+  virtual ~Column() { }
 };
  
 /*************************************************************************
@@ -147,7 +149,9 @@ class IntColumn : public Column {
 
   virtual char* serialize() {
     char* buff = new char[2048];
-    sprintf(buff, "{INTCOLUMN|arr_=%s}", arr_->serialize()); 
+    char* serialized = arr_->serialize();
+    sprintf(buff, "{INTCOLUMN|arr_=%s}", serialized); 
+    delete[] serialized;
     return buff;
   }
 
@@ -198,7 +202,9 @@ class StringColumn : public Column {
 
   virtual char* serialize() {
     char* buff = new char[2048];
-    sprintf(buff, "{STRINGCOLUMN|arr_=%s}", arr_->serialize()); 
+    char* serialized = arr_->serialize();
+    sprintf(buff, "{STRINGCOLUMN|arr_=%s}", serialized);
+    delete[] serialized; 
     return buff;
   }
 
@@ -249,17 +255,23 @@ class BoolColumn : public Column {
 
   virtual char* serialize() {
     char* buff = new char[2048];
-    sprintf(buff, "{BOOLCOLUMN|arr_=%s}", arr_->serialize()); 
+    char* serial = arr_->serialize();
+    sprintf(buff, "{BOOLCOLUMN|arr_=%s}", serial); 
+    delete[] serial;
     return buff;
   }
 
   static BoolColumn* deserialize(char* s) {
     int x = 17;
     BoolColumn* returning = new BoolColumn();
-    assert(strcmp(returning->substring(s, 0, x), "{BOOLCOLUMN|arr_=") == 0);
+    char* c = returning->substring(s, 0, x);
+    assert(strcmp(c, "{BOOLCOLUMN|arr_=") == 0);
+    delete[] c;
     int y = returning->parseUntilClassSeperator(s, x);
-    char* c = returning->substring(s, x, y);
+    c = returning->substring(s, x, y);
+    delete returning->arr_;
     returning->arr_ = Array<bool>::deserialize_boolarray(c);
+    delete[] c;
     return returning;
   }
 
@@ -303,17 +315,23 @@ class DoubleColumn : public Column {
 
   virtual char* serialize() {
     char* buff = new char[2048];
-    sprintf(buff, "{DOUBLECOLUMN|arr_=%s}", arr_->serialize()); 
+    char* serial = arr_->serialize();
+    sprintf(buff, "{DOUBLECOLUMN|arr_=%s}", serial); 
+    delete[] serial;
     return buff;
   }
 
   static DoubleColumn* deserialize(char* s) {
     int x = 19;
     DoubleColumn* returning = new DoubleColumn();
-    assert(strcmp(returning->substring(s, 0, x), "{DOUBLECOLUMN|arr_=") == 0);
+    char* c = returning->substring(s, 0, x);
+    assert(strcmp(c, "{DOUBLECOLUMN|arr_=") == 0);
+    delete[] c;
     int y = returning->parseUntilClassSeperator(s, x);
-    char* c = returning->substring(s, x, y);
+    c = returning->substring(s, x, y);
+    delete returning->arr_;
     returning->arr_ = Array<bool>::deserialize_doublearray(c);
+    delete[] c;
     return returning;
   }
     
@@ -414,29 +432,39 @@ Array<Column*>* Array<arrayClass>::deserialize_columnarray(char* s) {
   char* buff = new char[2048];
   sprintf(buff, "{Array|type=%s|array=", className);
   int x = strlen(buff);
-  assert(strcmp(sys.substring(s, 0, x), buff) == 0);
+  char* c = sys.substring(s, 0, x);
+  assert(strcmp(c, buff) == 0);
+  delete[] c;
 
   while(s[x] == '{') {
       y = sys.parseUntilClassSeperator(s, x);
       char* c = sys.substring(s, x, y);
       returning->add(Column::deserialize(c));
       x += y;
+      delete[] c;
   }
+
+  delete[] buff;
   return returning;
 }
 
  Column* Column::deserialize(char* s) {
   Sys sys;
-  if (strcmp(sys.substring(s, 1, 9), "INTCOLUMN") == 0) {
+  char* col = sys.substring(s, 1, 9);
+  if (strcmp(col, "INTCOLUMN") == 0) {
+    delete[] col;
     return IntColumn::deserialize(s);
   }
-  else if (strcmp(sys.substring(s, 1, 12), "STRINGCOLUMN") == 0) {
+  else if (strcmp(col, "STRINGCOL") == 0) {
+    delete[] col;
     return StringColumn::deserialize(s);
   }
-  else if (strcmp(sys.substring(s, 1, 10), "BOOLCOLUMN") == 0) {
+  else if (strcmp(col, "BOOLCOLUM") == 0) {
+    delete[] col;
     return BoolColumn::deserialize(s);
   }
-  else if (strcmp(sys.substring(s, 1, 12), "DOUBLECOLUMN") == 0) {
+  else if (strcmp(col, "DOUBLECOL") == 0) {
+    delete[] col;
     return DoubleColumn::deserialize(s);
   }
 }
