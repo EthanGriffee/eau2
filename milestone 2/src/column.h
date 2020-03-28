@@ -85,13 +85,13 @@ class Column : public Object {
       return;
   }
  
-  /** Return the type of this column as a char: 'S', 'B', 'I' and 'F'. */
+  /** Return the type of this column as a char: 'S', 'B', 'I' and 'D'. */
   char get_type() {
     if (this->as_string()) {
       return 'S';
     }
     else if (this->as_double()) {
-      return 'F';
+      return 'D';
     }
     else if (this->as_int()) {
       return 'I';
@@ -148,11 +148,13 @@ class IntColumn : public Column {
   }
 
   virtual char* serialize() {
-    char* buff = new char[2048];
+    StrBuff strbuff;
+    strbuff = strbuff.c("{INTCOLUMN|arr_=");
     char* serialized = arr_->serialize();
-    sprintf(buff, "{INTCOLUMN|arr_=%s}", serialized); 
+    strbuff = strbuff.c(serialized);
+    strbuff = strbuff.c("|}");
     delete[] serialized;
-    return buff;
+    return strbuff.get_char();
   }
 
   static IntColumn* deserialize(char* s) {
@@ -201,11 +203,13 @@ class StringColumn : public Column {
   }
 
   virtual char* serialize() {
-    char* buff = new char[2048];
+    StrBuff strbuff;
+    strbuff = strbuff.c("{STRINGCOLUMN|arr_=");
     char* serialized = arr_->serialize();
-    sprintf(buff, "{STRINGCOLUMN|arr_=%s}", serialized);
-    delete[] serialized; 
-    return buff;
+    strbuff = strbuff.c(serialized);
+    strbuff = strbuff.c("|}");
+    delete[] serialized;
+    return strbuff.get_char();
   }
 
   static StringColumn* deserialize(char* s) {
@@ -254,11 +258,13 @@ class BoolColumn : public Column {
   }
 
   virtual char* serialize() {
-    char* buff = new char[2048];
-    char* serial = arr_->serialize();
-    sprintf(buff, "{BOOLCOLUMN|arr_=%s}", serial); 
-    delete[] serial;
-    return buff;
+    StrBuff strbuff;
+    strbuff = strbuff.c("{BOOLCOLUMN|arr_=");
+    char* serialized = arr_->serialize();
+    strbuff = strbuff.c(serialized);
+    strbuff = strbuff.c("|}");
+    delete[] serialized;
+    return strbuff.get_char();
   }
 
   static BoolColumn* deserialize(char* s) {
@@ -296,7 +302,7 @@ class DoubleColumn : public Column {
   }
 
   /** Returns the string at idx; undefined on invalid idx.*/
-  bool get(size_t idx)  {
+  double get(size_t idx)  {
     return arr_->get(idx);
   }
 
@@ -314,11 +320,13 @@ class DoubleColumn : public Column {
   }
 
   virtual char* serialize() {
-    char* buff = new char[2048];
-    char* serial = arr_->serialize();
-    sprintf(buff, "{DOUBLECOLUMN|arr_=%s}", serial); 
-    delete[] serial;
-    return buff;
+    StrBuff strbuff;
+    strbuff = strbuff.c("{DOUBLECOLUMN|arr_=");
+    char* serialized = arr_->serialize();
+    strbuff = strbuff.c(serialized);
+    strbuff = strbuff.c("|}");
+    delete[] serialized;
+    return strbuff.get_char();
   }
 
   static DoubleColumn* deserialize(char* s) {
@@ -425,26 +433,19 @@ class ColumnSet : public Object {
 
 template <class arrayClass>
 Array<Column*>* Array<arrayClass>::deserialize_columnarray(char* s) {
-  Sys sys;
   int y;
   Array<Column*>* returning = new Array<Column*>();
   const char* className = typeid(Column*).name();
-  char* buff = new char[2048];
-  sprintf(buff, "{Array|type=%s|array=", className);
-  int x = strlen(buff);
-  char* c = sys.substring(s, 0, x);
-  assert(strcmp(c, buff) == 0);
-  delete[] c;
+  int x = Array<double>::assert_correct_deserial_(s, className);
 
   while(s[x] == '{') {
-      y = sys.parseUntilClassSeperator(s, x);
-      char* c = sys.substring(s, x, y);
+      y = returning->parseUntilClassSeperator(s, x);
+      char* c = returning->substring(s, x, y);
       returning->add(Column::deserialize(c));
       x += y;
       delete[] c;
   }
 
-  delete[] buff;
   return returning;
 }
 

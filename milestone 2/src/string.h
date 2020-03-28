@@ -135,6 +135,13 @@ public:
     StrBuff& c(String &s) { return c(s.c_str());  }
     StrBuff& c(size_t v) { return c(std::to_string(v).c_str());  } // Cpp
 
+    char* get_char() {
+        assert(val_ != nullptr); // can be called only once
+        grow_by_(1);     // ensure space for terminator
+        val_[size_] = 0; // terminate
+        return val_;
+    }
+
     String* get() {
         assert(val_ != nullptr); // can be called only once
         grow_by_(1);     // ensure space for terminator

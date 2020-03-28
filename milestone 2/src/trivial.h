@@ -18,7 +18,6 @@ class Trivial : public Application {
     DataFrame* df = DataFrame::fromArray(&key, &kv, SZ, vals);
     assert(df->get_double(0,1) == 1);
     DataFrame* df2 = kv.get(key);
-    df2->p(df2->serialize());
     for (size_t i = 0; i < SZ; ++i) sum -= df2->get_double(0,i);
     assert(sum==0);
     delete vals;

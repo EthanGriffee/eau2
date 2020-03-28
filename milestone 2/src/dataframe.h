@@ -19,7 +19,7 @@ class KDStore;
  * A schema is a description of the contents of a data frame, the schema
  * knows the number of columns and number of rows, the type of each column,
  * optionally columns and rows can be named by strings.
- * The valid types are represented by the chars 'S', 'B', 'I' and 'F'.
+ * The valid types are represented by the chars 'S', 'B', 'I' and 'D'.
  */
 class Schema : public Object {
  public:
@@ -67,11 +67,13 @@ class Schema : public Object {
   }
 
   char* serialize() {
-    char* buff = new char[1024];
+    StrBuff strbuff;
     char* ser_type = types->serialize();
-    sprintf(buff, "{SCHEMA|types=%s}", ser_type);
+    strbuff.c("{SCHEMA|types=");
+    strbuff.c(ser_type);
+    strbuff.c("|}");
     delete[] ser_type;
-    return buff;
+    return strbuff.get_char();
   }
 
   static Schema* deserialize(char* s) {
@@ -121,7 +123,7 @@ class Row : public Object {
   }
 
   void set_double(size_t col, double val) {
-    if (col_type(col) == 'F') {
+    if (col_type(col) == 'D') {
       row_.set(new DoubleObj(val), col);
     }
   }
@@ -248,7 +250,7 @@ class DataFrame : public Object {
       char col_type = scmCoppying.col_type(i);
       scm.add_column(col_type);
       switch(col_type) {
-        case 'F':
+        case 'D':
           columns_->add(new DoubleColumn());
           break;
         case 'B':
@@ -346,7 +348,7 @@ class DataFrame : public Object {
   void fill_row(size_t idx, Row& row) {
     for(size_t i = 0; i < columns_->getSize(); i++) {
       switch(columns_->get(i)->get_type()) {
-        case 'F':
+        case 'D':
           row.set_double(i, columns_->get(i)->as_double()->get(idx));
           break;
         case 'I':
@@ -369,7 +371,7 @@ class DataFrame : public Object {
     for(size_t i = 0; i < row.width(); i++) {
       Column* curr_column = columns_->get(i);
       switch(columns_->get(i)->get_type()) {
-        case 'F': {
+        case 'D': {
           double f = row.get_double(i);
           curr_column->push_back(f);
           break;
@@ -483,14 +485,17 @@ class DataFrame : public Object {
   }
 
   char* serialize() {
-    char* buff = new char[2048];
+    StrBuff strbuff;
     char* ser_schema = get_schema().serialize();
     char* ser_col = columns_->serialize();
-    sprintf(buff, "{DATAFRAME|schema=%s|columns_=%s}}", ser_schema, ser_col);
-    Sys s;
+    strbuff = strbuff.c("{DATAFRAME|schema=");
+    strbuff = strbuff.c(ser_schema);
+    strbuff = strbuff.c("|columns_=");
+    strbuff = strbuff.c(ser_col);
+    strbuff = strbuff.c("}}");
     delete[] ser_schema;
     delete[] ser_col;
-    return buff;
+    return strbuff.get_char();
   }
 
   ~DataFrame() {

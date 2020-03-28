@@ -14,7 +14,7 @@ Eau2 has three layers to it:
 
 We implemented the following classes as we believe they are needed for the development of the eau2 system:
 
-* **kvstore.h** - we use this to hold the serialized dataframes
+* **kvstore.h** - we use this to hold the serialized elements
 * **dataframe.h** - we use this to store and display the data after it parsed from a file.
 * **parser.h** (the code is borrowed from team 4200NE) - we use this to parse SoR data from a file into our dataframe.
 * **arraytemplate.h** - we use this to store any type of data, a template was decided to be used instead of array classes to reduce clutter. 

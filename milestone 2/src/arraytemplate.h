@@ -96,9 +96,7 @@ public:
      * @arg index Location to get the value in the array at. 
      **/
     arrayClass get(size_t index) {
-        if (index > size) {
-            exit(1);
-        }
+        assert(index <= size);
         return array[index];
     }
 
@@ -286,109 +284,99 @@ public:
         return n;
     }
 
+    /**
+     * returns the length of the headers of the deserialized array, and checks to make sure
+     * it matches
+     **/
+    static int assert_correct_deserial_(char* check, const char* className) {
+        StrBuff strbuff;
+        strbuff = strbuff.c("{Array|type=");
+        strbuff = strbuff.c(className);
+        strbuff = strbuff.c("|array=");
+        char* val = strbuff.get_char();
+        int x = strbuff.size_;
+        char* c = strbuff.substring(check, 0, x);
+        assert(strcmp(c, val) == 0);
+        delete[] val;
+        delete[] c;
+        return x;
+    }
+
     char* serialize() {
-        char* buff = new char[1024];
-        sprintf(buff, "{Array|type=%s|array=", typeid(arrayClass).name());
+        StrBuff strbuff;
+        strbuff = strbuff.c("{Array|type=");
+        strbuff = strbuff.c(typeid(arrayClass).name());
+        strbuff = strbuff.c("|array=");
         for(int x = 0; x < size; x++) {
             char* element = serialize_element(this->get(x));
-            sprintf(&buff[strlen(buff)], "%s", element);
+            strbuff.c(element);
             delete[] element;
         } 
-        sprintf(&buff[strlen(buff)], "|}");
-        return buff;
+        strbuff.c("|}");
+        return strbuff.get_char();
     }
 
     static Array<double>* deserialize_doublearray(char* s) {
-        Sys sys;
         int y;
         Array<double>* returning = new Array<double>();
         const char* className = typeid(double).name();
-        char* buff = new char[1024];
-        sprintf(buff, "{Array|type=%s|array=", className);
-        int x = strlen(buff);
-        char* c = sys.substring(s, 0, x);
-        assert(strcmp(c, buff) == 0);
-        delete[] c;
+        int x = Array<double>::assert_correct_deserial_(s, className);
         while(s[x] == '{') {
-            y = sys.parseUntilClassSeperator(s, x);
-            c = sys.substring(s, x + 1, y - 1);
+            y = returning->parseUntilClassSeperator(s, x);
+            char* c = returning->substring(s, x + 1, y - 1);
             returning->add(atof(c));
             x += y;
             delete[] c;
         }
-        delete[] buff;
         return returning;
     }
 
     static Array<bool>* deserialize_boolarray(char* s) {
-        Sys sys;
         int y;
         Array<bool>* returning = new Array<bool>();
         const char* className = typeid(bool).name();
-        char* buff = new char[2048];
-        sprintf(buff, "{Array|type=%s|array=", className);
-        int x = strlen(buff);
-        char* c = sys.substring(s, 0, x);
-        assert(strcmp(c, buff) == 0);
-        delete[] c;
+        int x = Array<bool>::assert_correct_deserial_(s, className);
    
         while(s[x] == '{') {
-            y = sys.parseUntilClassSeperator(s, x);
-            c = sys.substring(s, x + 1, y - 2);
+            y = returning->parseUntilClassSeperator(s, x);
+            char* c = returning->substring(s, x + 1, y - 2);
             returning->add(strcmp(c, "0") == 0);
             x += y;
             delete[] c;
         }
-        delete[] buff;
         return returning;
     }
 
     static Array<String*>* deserialize_stringarray(char* s) {
-        Sys sys;
         int y;
         Array<String*>* returning = new Array<String*>();
         const char* className = typeid(String*).name();
-        char* buff = new char[2048];
-        sprintf(buff, "{Array|type=%s|array=", className);
-        int x = strlen(buff);
-        char* c = sys.substring(s, 0, x);
-        assert(strcmp(c, buff) == 0);
-        delete[] c;
+        int x = Array<bool>::assert_correct_deserial_(s, className);
    
         while(s[x] == '{') {
-            y = sys.parseUntilClassSeperator(s, x);
-            c = sys.substring(s, x, y);
+            y = returning->parseUntilClassSeperator(s, x);
+            char* c = returning->substring(s, x, y);
             returning->add(String::deserialize(c));
             x += y;
             delete[] c;
         }
-        delete[] buff;
         return returning;
     }
 
     static Array<char>* deserialize_chararray(char* s) {
-        Sys sys;
         int y;
         Array<char>* returning = new Array<char>();
         const char* className = typeid(char).name();
-        char* buff = new char[2048];
-        sprintf(buff, "{Array|type=%s|array=", className);
-        int x = strlen(buff);
-        char* c = sys.substring(s, 0, x);
-        assert(strcmp(c, buff) == 0);
-        delete[] c;
+        int x = Array<bool>::assert_correct_deserial_(s, className);
    
         while(s[x] == '{') {
-            y = sys.parseUntilClassSeperator(s, x);
-            c = sys.substring(s, x + 1, y - 1);
+            y = returning->parseUntilClassSeperator(s, x);
+            char* c = returning->substring(s, x + 1, y - 1);
             returning->add(c[0]);
             x += y;
             delete[] c;
         }
-
-        delete[] buff;
         return returning;
-
     }
 
     static Array<Column*>* deserialize_columnarray(char* s);

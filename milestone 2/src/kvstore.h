@@ -31,10 +31,18 @@ class Key : public Object {
         size_t getNode() {
             return node;
         }
+
+        bool equals(Object* other) {
+            Key* other_key = dynamic_cast<Key*>(other);
+            if (other_key) {
+                return (strcmp(name, other_key->getKey()) == 0);
+            }
+            return false;
+        }
 };
 
 
-class KVStore {
+class KVStore : public Object {
     public:
         size_t node;
         Array<Key*> keys;
@@ -42,8 +50,8 @@ class KVStore {
 
         KVStore() {}
 
-        void put(Key key, char* value) {
-            keys.add(&key);
+        void put(Key* key, char* value) {
+            keys.add(key);
             vals.add(value);
         }
     
@@ -57,8 +65,7 @@ class KVStore {
 
         ~KVStore() {
             for (int x = 0; x < keys.getSize(); x++) {
-                delete keys.get(x);
-                delete vals.get(x);
+                delete[] vals.get(x);
             }
         }
 
@@ -70,7 +77,7 @@ class KDStore {
 
         KDStore() {}
 
-        void put(Key key, DataFrame* value) {
+        void put(Key* key, DataFrame* value) {
             kv.put(key, value->serialize());
         }
 
@@ -92,6 +99,6 @@ DataFrame* DataFrame::fromArray(Key* key, KDStore* kv, size_t size, Array<double
         r.set_double(0, vals->get(x));
         n->add_row(r);
     }
-    kv->put(*key, n);
+    kv->put(key, n);
     return n;
 }
