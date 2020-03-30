@@ -11,6 +11,7 @@ void basic_test() {
     df.add_row(r);
   }
   df.t_true(df.get_int((size_t)0,1) ==  1);
+  df.OK("Basic Test works");
 }
 
 /*******************************************************************************
@@ -25,7 +26,7 @@ class OnlyTrueRower : public Rower {
       should be kept. */
   virtual bool accept(Row& r) {
     for (int x = 0; x < r.width(); x++) {
-      if (r.col_type(x) == 'B' && !r.get_bool(x)) {
+      if (r.col_type(x) == 'B' && !r.get_bool(x, false)) {
         return  false;
       }
     }
@@ -55,6 +56,7 @@ void copying_dataframe_test() {
   DataFrame df2(df);
   df.t_true(df2.nrows() == 0);
   df.t_true(df2.ncols() == 2);
+  df.OK("Copying Dataframe Test works");
 }
 
 void get_dataframe_test() {
@@ -84,9 +86,7 @@ void get_dataframe_test() {
   df.t_true(df.get_bool(1,0));
   df.t_true(df.get_string(2,1)->equals(world_string));
   df.t_true(df.get_int(0,2) == 3);
-  delete hello_string;
-  delete world_string;
-  delete welcome_string;
+  df.OK("Get Dataframe Test works");
 }
 
 void fill_row_dataframe_test() {
@@ -111,29 +111,28 @@ void fill_row_dataframe_test() {
   df.add_row(r);
 
   df.fill_row(1, r);
-  df.t_true(r.get_int(0) == 2);
-  df.t_true(r.get_bool(1) == false);
+  df.t_true(r.get_int(0, true) == 2);
+  df.t_true(r.get_bool(1, true) == false);
   df.t_true(r.get_string(2)->equals(world_string));
   df.t_true(r.width() == 3);
-  delete hello_string;
-  delete world_string;
-  delete welcome_string;
+  df.OK("Fill Row Dataframe Test works");
 }
 
 
 void schema_test() {
-  Schema s("IFBS");
+  Schema s("IDBS");
   s.add_column('I');
 
   s.t_true(s.width() == 5);
   s.t_true(s.col_type(3) == 'S');
   s.t_true(s.col_type(2) == 'B');
-  s.t_true(s.col_type(1) == 'F');
+  s.t_true(s.col_type(1) == 'D');
   s.t_true(s.col_type(0) == 'I');
+  s.OK("Schema Test works");
 }
 
 void row_test() {
-  Schema s("IFBS");
+  Schema s("IDBS");
   Row r(s);
 
   String* str = new String("You did it buddy");
@@ -142,13 +141,13 @@ void row_test() {
   r.set_double(1, double(12.01));
   r.set_bool(2, true);
   r.set_string(3, str);
-  r.t_true(r.get_int(0) == 12);
-  double x = r.get_double(1);
+  r.t_true(r.get_int(0, true) == 12);
+  double x = r.get_double(1, true);
   r.t_true(x >= 12.01 - .001 && x <= 12.01 + .001);
-  r.t_true(r.get_bool(2) == true);
+  r.t_true(r.get_bool(2, true) == true);
   r.t_true(r.get_string(3)->equals(str));
   r.t_true(r.width() == 4);
-  exit(0);
+  s.OK("Row Test works");
 }
 
 void rower_filter_dataframe_test() {
@@ -164,8 +163,8 @@ void rower_filter_dataframe_test() {
   r.set_bool(2, true);
   df.add_row(r);
   r.set_int(0, 2);
-  r.set_bool(0, true);
-  r.set_bool(1, false);
+  r.set_bool(1, true);
+  r.set_bool(2, false);
   df.add_row(r);
 
   OnlyTrueRower rower;
@@ -173,9 +172,8 @@ void rower_filter_dataframe_test() {
 
   df.t_true(df2->get_int(0, 0) == df.get_int(0, 1));
   df.t_true(df2->nrows() == 1);
-  df2->add_row(r);
-  df.t_true(df2->get_int(0, 1) == 2);
-  exit(0);
+  df.t_true(df2->get_bool(1, 0) == true);
+  df.OK("Row Filter Dataframe Test works");
 }
 
 int main() {

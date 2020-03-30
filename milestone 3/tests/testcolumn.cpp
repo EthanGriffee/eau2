@@ -43,8 +43,8 @@ void column_type_test() {
     c->t_true(c->get_type() == 'S');
     c->t_true(i->get_type() == 'I');
     c->t_true(b->get_type() == 'B');
-    c->t_true(f->get_type() == 'F');
-    c->t_true(f2->get_type() == 'F');
+    c->t_true(f->get_type() == 'D');
+    c->t_true(f2->get_type() == 'D');
     delete c;
     delete i;
     delete b;

@@ -3,7 +3,7 @@
 
 
 void test1() {
-    DataFrame* x = DataFrame::fromFile("../data/small_datafile.txt");
+    DataFrame* x = DataFrame::fromFile("./data/small_datafile.txt");
     x->t_true(x->ncols() == 11);
     x->t_true(x->nrows() == 20);
     x->t_true(x->get_int(0,0) == 1);
@@ -17,6 +17,8 @@ void test1() {
 
 
 int main() {
+    Sys s;
     test1();
+    s.OK("Parsing Dataframe works");
     return 0;
 }

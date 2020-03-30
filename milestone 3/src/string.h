@@ -76,7 +76,7 @@ public:
     }
 
     /** Compute a hash for this string. */
-    size_t hash_me() {
+    size_t hash() {
         size_t hash = 0;
         for (size_t i = 0; i < size_; ++i)
             hash = cstr_[i] + (hash << 6) + (hash << 16) - hash;
@@ -93,9 +93,14 @@ public:
     static String* deserialize(char* s) {
         Sys sys;
         int x = 14;
-        assert(strcmp(sys.substring(s, 0, x), "{String|cstr_=") == 0);
+        char* c = sys.substring(s, 0, x);
+        assert(strcmp(c, "{String|cstr_=") == 0);
+        delete[] c;
         int y = sys.parseUntilSeperator(s, x);
-        return new String(sys.substring(s, x, y));
+        c = sys.substring(s, x, y);
+        String* returning = new String(c);
+        delete[] c;
+        return returning;
     }
  };
 
@@ -129,6 +134,13 @@ public:
     }
     StrBuff& c(String &s) { return c(s.c_str());  }
     StrBuff& c(size_t v) { return c(std::to_string(v).c_str());  } // Cpp
+
+    char* get_char() {
+        assert(val_ != nullptr); // can be called only once
+        grow_by_(1);     // ensure space for terminator
+        val_[size_] = 0; // terminate
+        return val_;
+    }
 
     String* get() {
         assert(val_ != nullptr); // can be called only once

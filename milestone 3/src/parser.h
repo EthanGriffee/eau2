@@ -395,7 +395,7 @@ class SorParser : public Object {
             case 'I':
                 dynamic_cast<IntColumn*>(column)->push_back(slice.toInt());
                 break;
-            case 'F':
+            case 'D':
                 dynamic_cast<DoubleColumn*>(column)->push_back(slice.toDouble());
                 break;
             case 'B':

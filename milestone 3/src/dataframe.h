@@ -10,8 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
+#include "key.h"
 
-class Key;
 class KDStore;
  
 /*************************************************************************
@@ -19,7 +19,7 @@ class KDStore;
  * A schema is a description of the contents of a data frame, the schema
  * knows the number of columns and number of rows, the type of each column,
  * optionally columns and rows can be named by strings.
- * The valid types are represented by the chars 'S', 'B', 'I' and 'F'.
+ * The valid types are represented by the chars 'S', 'B', 'I' and 'D'.
  */
 class Schema : public Object {
  public:
@@ -28,7 +28,10 @@ class Schema : public Object {
  
   /** Copying constructor */
   Schema(Schema& from) {
-    types = from.types;
+    types = new Array<char>();
+    for (int x = 0; x < from.width(); x++) {
+      types->add(from.col_type(x));
+    }
   }
  
   /** Create an empty schema **/
@@ -67,18 +70,26 @@ class Schema : public Object {
   }
 
   char* serialize() {
-    char* buff = new char[1024];
-    sprintf(buff, "{SCHEMA|types=%s}", types->serialize());
-    return buff;
+    StrBuff strbuff;
+    char* ser_type = types->serialize();
+    strbuff.c("{SCHEMA|types=");
+    strbuff.c(ser_type);
+    strbuff.c("|}");
+    delete[] ser_type;
+    return strbuff.get_char();
   }
 
   static Schema* deserialize(char* s) {
     int x = 14;
     Schema* returning = new Schema();
-    assert(strcmp(returning->substring(s, 0, x), "{SCHEMA|types=") == 0);
+    char* c = returning->substring(s, 0, x);
+    assert(strcmp(c, "{SCHEMA|types=") == 0);
+    delete[] c;
     int y = returning->parseUntilClassSeperator(s, x);
-    char* c = returning->substring(s, x, y);
+    c = returning->substring(s, x, y);
+    delete returning->types;
     returning->types = Array<char>::deserialize_chararray(c);
+    delete[] c;
     return returning;
   }
 
@@ -115,7 +126,7 @@ class Row : public Object {
   }
 
   void set_double(size_t col, double val) {
-    if (col_type(col) == 'F') {
+    if (col_type(col) == 'D') {
       row_.set(new DoubleObj(val), col);
     }
   }
@@ -135,54 +146,40 @@ class Row : public Object {
  
   /** Getters: get the value at the given column. If the column is not
     * of the requested type, the result is undefined. */
-  int get_int(size_t col) {
+  int get_int(size_t col, bool deleting) {
     IntObj* intobj = dynamic_cast<IntObj*> (row_.get(col));
-    if (intobj) {
-      int returning =  intobj->getInt();
+    assert(intobj);
+    int returning =  intobj->getInt();
+    if (deleting) {
       delete intobj;
-      return returning;
     }
-    else {
-      perror("calling get_int on a col_indx that is not a int column");
-      exit(1);
-    }
+    return returning;
   }
 
-  bool get_bool(size_t col) {
+  bool get_bool(size_t col, bool deleting) {
     BoolObj* boolobj = dynamic_cast<BoolObj*> (row_.get(col));
-    if (boolobj) {
-      bool returning =  boolobj->getBool();
+    assert(boolobj);
+    bool returning =  boolobj->getBool();
+    if (deleting) {
       delete boolobj;
-      return returning;
     }
-    else {
-      perror("calling get_bool on a col_indx that is not a bool column");
-      exit(1);
-    }
+    return returning;
   }
 
-  double get_double(size_t col) {
+  double get_double(size_t col, bool deleting) {
     DoubleObj* doubleobj = dynamic_cast<DoubleObj*> (row_.get(col));
-    if (doubleobj) {
-      double returning = doubleobj->getDouble();
+    assert(doubleobj);
+    double returning = doubleobj->getDouble();
+    if (deleting) {
       delete doubleobj;
-      return returning;
     }
-    else {
-      perror("calling get on a get_double that is not a double column");
-      exit(1);
-    }
+    return returning;
   }
 
   String* get_string(size_t col) {
     String* str = dynamic_cast<String*> (row_.get(col));
-    if (str) {
-      return str;
-    }
-    else {
-      perror("calling get_string on a col_indx that is not a String column");
-      exit(1);
-    }
+    assert(str);
+    return str;
   }
  
   /** Number of fields in the row. */
@@ -242,7 +239,7 @@ class DataFrame : public Object {
       char col_type = scmCoppying.col_type(i);
       scm.add_column(col_type);
       switch(col_type) {
-        case 'F':
+        case 'D':
           columns_->add(new DoubleColumn());
           break;
         case 'B':
@@ -340,7 +337,7 @@ class DataFrame : public Object {
   void fill_row(size_t idx, Row& row) {
     for(size_t i = 0; i < columns_->getSize(); i++) {
       switch(columns_->get(i)->get_type()) {
-        case 'F':
+        case 'D':
           row.set_double(i, columns_->get(i)->as_double()->get(idx));
           break;
         case 'I':
@@ -363,18 +360,18 @@ class DataFrame : public Object {
     for(size_t i = 0; i < row.width(); i++) {
       Column* curr_column = columns_->get(i);
       switch(columns_->get(i)->get_type()) {
-        case 'F': {
-          double f = row.get_double(i);
+        case 'D': {
+          double f = row.get_double(i, true);
           curr_column->push_back(f);
           break;
         }
         case 'I': {
-          int in = row.get_int(i);
+          int in = row.get_int(i, true);
           curr_column->push_back(in);
           break;
         }
         case 'B': {
-          bool b = row.get_bool(i);
+          bool b = row.get_bool(i, true);
           curr_column->push_back(b);
           break;
         }
@@ -417,16 +414,13 @@ class DataFrame : public Object {
     for (int i = 0; i < nrows(); i++) {
       this->fill_row(i, row);
       if (r.accept(row)) {
-        Sys x;
-        x.p("fdsfds");
-        
         n->add_row(row);
       }
     }
     return n;
   }
 
-  DataFrame* fromFile(char* filename) {
+  static DataFrame* fromFile(char* filename) {
     Schema s;
     DataFrame* df = new  DataFrame(s);
     FILE* file = fopen(filename, "r");
@@ -453,25 +447,44 @@ class DataFrame : public Object {
     Sys s;
     int x = 18;
     int y;
-    assert(strcmp(s.substring(des, 0, x), "{DATAFRAME|schema=") == 0);
+
+    char* c = s.substring(des, 0, x);
+    assert(strcmp(c, "{DATAFRAME|schema=") == 0);
+    delete[] c;
     y = s.parseUntilClassSeperator(des, x);
-    char* c = s.substring(des, x, y);
+    c = s.substring(des, x, y);
     Schema* scm = Schema::deserialize(c);
     DataFrame* newFrame =  new DataFrame(*scm);
+    delete scm;
     x = x + y + 1;
-    assert(strcmp(s.substring(des, x, 9), "columns_=") == 0);
+    delete[] c;
+    c = s.substring(des, x, 9);
+    assert(strcmp(c, "columns_=") == 0);
+    delete[] c;
     x = x + 9;
     y = s.parseUntilClassSeperator(des, x);
     c = s.substring(des, x, y);
+    for (int i = 0; i < newFrame->ncols(); i++) {
+        delete newFrame->columns_->get(i);
+      }
+    delete newFrame->columns_;
     newFrame->columns_ = Array<Column>::deserialize_columnarray(c);
+    delete[] c;
     return newFrame;
   }
 
-
   char* serialize() {
-    char* buff = new char[2048];
-    sprintf(buff, "{DATAFRAME|schema=%s|columns_=%s}}", get_schema().serialize(), columns_->serialize()); 
-    return buff;
+    StrBuff strbuff;
+    char* ser_schema = get_schema().serialize();
+    char* ser_col = columns_->serialize();
+    strbuff = strbuff.c("{DATAFRAME|schema=");
+    strbuff = strbuff.c(ser_schema);
+    strbuff = strbuff.c("|columns_=");
+    strbuff = strbuff.c(ser_col);
+    strbuff = strbuff.c("}}");
+    delete[] ser_schema;
+    delete[] ser_col;
+    return strbuff.get_char();
   }
 
   ~DataFrame() {

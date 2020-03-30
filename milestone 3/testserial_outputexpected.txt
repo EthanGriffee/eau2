@@ -1,0 +1,10 @@
+String Array OK
+DoubleArray OK
+CharArray OK
+BoolArray OK
+BoolColumn OK
+SerializingColumnArrays OK
+Serializing Dataframes OK
+Serializing Keys OK
+Serializing WaitAndGets Messages OK
+Serializing KeyValue Messages OK

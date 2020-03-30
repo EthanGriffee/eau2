@@ -1,3 +1,5 @@
+#pragma once
+
 #include "object.h"
 
 
@@ -88,5 +90,36 @@ class IntObj : public Object{
         // returns i
         int getInt() {
             return i;
+        }
+};
+
+
+// Wrapper for a Double
+class UnsignedIntObj : public Object {
+    public:
+        size_t f;
+
+        // sets the value of f to input_f
+        UnsignedIntObj(size_t input_f) {
+            f = input_f;
+        }
+
+        UnsignedIntObj(UnsignedIntObj& f) {
+            f = f.getUnsignedInt();
+        }
+
+        // returns if other is a double that has the same f
+        bool equals(Object *other) {
+            UnsignedIntObj * f2 = dynamic_cast<UnsignedIntObj*> (other);
+            return f2 && f == f2->getUnsignedInt();
+        }
+
+        // returns f
+        double getUnsignedInt() {
+            return f;
+        }
+
+        size_t hash() {
+            return f;
         }
 };

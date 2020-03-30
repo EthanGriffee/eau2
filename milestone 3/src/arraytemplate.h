@@ -1,6 +1,7 @@
 #pragma once
 #include "object.h"
 #include "string.h"
+#include <stdio.h>
 #include <math.h> 
 #include <limits>
 #include <type_traits>
@@ -8,56 +9,88 @@
 
 class Column;
 
+/**
+ * uses the == operator when comparing equality between two integral types.
+ */
 template <typename IntegralType>
 typename std::enable_if<std::is_integral<IntegralType>::value, bool>::type
 equal(const IntegralType& a, const IntegralType& b) {
         return a == b;
 }
 
+/**
+ * uses an epsilon operator when comparing equality between two floating types.
+ */
 template <typename FloatingType>
 typename std::enable_if<std::is_floating_point<FloatingType>::value, bool>::type
 equal(const FloatingType& a, const FloatingType& b) {
         return fabs(a-b) < std::numeric_limits<FloatingType>::epsilon();
 }
 
+/**
+ * uses the object method equals() when comparing two object types
+ **/
 bool equal(Object* a, Object* b) {
         return a->equals(b);
 }
 
+/**
+ * uses stcmp when comparing two char*s 
+ **/
 bool equal(char* a, char* b) {
     return strcmp(a, b) == 0;
 }
 
+/**
+ * Serializes a floating type by storing it inside a buffer and returning the buffer.
+ */
 template <typename FloatingType>
 typename std::enable_if<std::is_floating_point<FloatingType>::value, char*>::type
 serialize_element(const FloatingType& f) {
-    char a[1024];
+    char* a =  new char[1024];
     sprintf(a, "{%f}", f);
     return a;
 }
 
+/**
+ * Serializes a integral type by storing it inside a buffer and returning the buffer.
+ */
 template <typename IntegralType>
 typename std::enable_if<std::is_integral<IntegralType>::value, char*>::type
 serialize_element(const IntegralType& i) {
-    char a[1024];
+    char* a =  new char[1024];
     sprintf(a, "{%c}", i);
     return a;
 }
 
+/**
+ * Serializes a char* by just returning the char*.
+ */
 char* serialize_element(char* a) {
     return a; 
 }
 
-char* serialize_element(bool a) {
-    return a ? strdup("{0}") : strdup("{1}"); 
+/**
+ * Serializes a boolean by returning a 0 if true and 1 if false.
+ */
+char* serialize_element(bool b) {
+    char* a =  new char[4];
+    sprintf(a, "{%i}", b ? 0 : 1);  
+    return a; 
 }
 
+/**
+ * Uses the Serialize method in object to serialize an object.
+ */
 char* serialize_element(Object* a) {
     return a->serialize(); 
 }
 
 
 
+/**
+ * A template for creating arrays.
+ */
 template <class arrayClass>
 class Array : public Object{
 public:
@@ -93,9 +126,7 @@ public:
      * @arg index Location to get the value in the array at. 
      **/
     arrayClass get(size_t index) {
-        if (index > size) {
-            exit(1);
-        }
+        assert(index < size);
         return array[index];
     }
 
@@ -114,6 +145,23 @@ public:
         delete[] array;
         array = new_array;
         
+    }
+
+    /**
+     *  returns the most recent element and removes it from the array
+     **/
+    arrayClass pop() {
+        assert(size > 0);
+        arrayClass returning = this->get(this->getSize() - 1);
+        size -= 1;
+        return returning;
+    }
+
+    /**
+     * adds to_push the beginning of the array
+     **/ 
+    void push_back(arrayClass to_push) {
+        add(to_push, 0);
     }
 
     /**
@@ -185,6 +233,9 @@ public:
         array[index] = to_add;
     }
 
+    /**
+     * Sets the element at position index to to_add
+     */
     virtual void set(arrayClass to_add, size_t index) {
         if (index > size) {
             return;
@@ -283,95 +334,131 @@ public:
         return n;
     }
 
-    char* serialize() {
-        char* buff = new char[2048];
-        sprintf(buff, "{Array|type=%s|array=", typeid(arrayClass).name());
-        for(int x = 0; x < size; x++) {
-             sprintf(&buff[strlen(buff)], "%s", serialize_element(this->get(x)));
-        } 
-        sprintf(&buff[strlen(buff)], "|}");
-        return buff;
+    /**
+     * returns the length of the headers of the deserialized array, and checks to make sure
+     * it matches
+     **/
+    static int assert_correct_deserial_(char* check, const char* className) {
+        StrBuff strbuff;
+        strbuff = strbuff.c("{Array|type=");
+        strbuff = strbuff.c(className);
+        strbuff = strbuff.c("|array=");
+        char* val = strbuff.get_char();
+        int x = strbuff.size_;
+        char* c = strbuff.substring(check, 0, x);
+        assert(strcmp(c, val) == 0);
+        delete[] val;
+        delete[] c;
+        return x;
     }
 
+    /**
+     * Serializes an array by calling serialize_element on each element of the array.
+     */
+    char* serialize() {
+        StrBuff strbuff;
+        strbuff = strbuff.c("{Array|type=");
+        strbuff = strbuff.c(typeid(arrayClass).name());
+        strbuff = strbuff.c("|array=");
+        for(int x = 0; x < size; x++) {
+            char* element = serialize_element(this->get(x));
+            strbuff.c(element);
+            delete[] element;
+        } 
+        strbuff.c("|}");
+        return strbuff.get_char();
+    }
+
+    /**
+     * static method for deserializing a double array.
+     * @arg s the char* beign deserialized.
+     **/
     static Array<double>* deserialize_doublearray(char* s) {
-        Sys sys;
         int y;
         Array<double>* returning = new Array<double>();
         const char* className = typeid(double).name();
-        char* buff = new char[2048];
-        sprintf(buff, "{Array|type=%s|array=", className);
-        int x = strlen(buff);
-        assert(strcmp(sys.substring(s, 0, x), buff) == 0);
-   
+        int x = Array<double>::assert_correct_deserial_(s, className);
         while(s[x] == '{') {
-            y = sys.parseUntilClassSeperator(s, x);
-            char* c = sys.substring(s, x + 1, y - 1);
+            y = returning->parseUntilClassSeperator(s, x);
+            char* c = returning->substring(s, x + 1, y - 1);
             returning->add(atof(c));
             x += y;
+            delete[] c;
         }
         return returning;
     }
 
+     /**
+     * static method for deserializing a bool array.
+     * @arg s the char* beign deserialized.
+     **/
     static Array<bool>* deserialize_boolarray(char* s) {
-        Sys sys;
         int y;
         Array<bool>* returning = new Array<bool>();
         const char* className = typeid(bool).name();
-        char* buff = new char[2048];
-        sprintf(buff, "{Array|type=%s|array=", className);
-        int x = strlen(buff);
-        assert(strcmp(sys.substring(s, 0, x), buff) == 0);
+        int x = Array<bool>::assert_correct_deserial_(s, className);
    
         while(s[x] == '{') {
-            y = sys.parseUntilClassSeperator(s, x);
-            char* c = sys.substring(s, x + 1, y - 2);
+            y = returning->parseUntilClassSeperator(s, x);
+            char* c = returning->substring(s, x + 1, y - 2);
             returning->add(strcmp(c, "0") == 0);
             x += y;
+            delete[] c;
         }
         return returning;
     }
 
+    /**
+     * static method for deserializing a string array.
+     * @arg s the char* beign deserialized.
+     **/
     static Array<String*>* deserialize_stringarray(char* s) {
-        Sys sys;
         int y;
         Array<String*>* returning = new Array<String*>();
         const char* className = typeid(String*).name();
-        char* buff = new char[2048];
-        sprintf(buff, "{Array|type=%s|array=", className);
-        int x = strlen(buff);
-        assert(strcmp(sys.substring(s, 0, x), buff) == 0);
+        int x = Array<bool>::assert_correct_deserial_(s, className);
    
         while(s[x] == '{') {
-            y = sys.parseUntilClassSeperator(s, x);
-            char* c = sys.substring(s, x, y);
+            y = returning->parseUntilClassSeperator(s, x);
+            char* c = returning->substring(s, x, y);
             returning->add(String::deserialize(c));
             x += y;
+            delete[] c;
         }
         return returning;
     }
 
+    /**
+     * static method for deserializing a chararray.
+     * @arg s the char* beign deserialized.
+     **/
     static Array<char>* deserialize_chararray(char* s) {
-        Sys sys;
         int y;
         Array<char>* returning = new Array<char>();
         const char* className = typeid(char).name();
-        char* buff = new char[2048];
-        sprintf(buff, "{Array|type=%s|array=", className);
-        int x = strlen(buff);
-        assert(strcmp(sys.substring(s, 0, x), buff) == 0);
+        int x = Array<bool>::assert_correct_deserial_(s, className);
    
         while(s[x] == '{') {
-            y = sys.parseUntilClassSeperator(s, x);
-            char* c = sys.substring(s, x + 1, y - 1);
+            y = returning->parseUntilClassSeperator(s, x);
+            char* c = returning->substring(s, x + 1, y - 1);
             returning->add(c[0]);
             x += y;
+            delete[] c;
         }
         return returning;
-
     }
 
+    /**
+     * static method for deserializing a column array.
+     * @arg s the char* beign deserialized.
+     **/
     static Array<Column*>* deserialize_columnarray(char* s);
 
+    /**
+     * Determines if a object is equal to this by casting it to a array of this class
+     * and comparing each elemnt of the array
+     * @arg other the object* being compared.
+     **/
     bool equals(Object* other) {
         Array<arrayClass>* arr = dynamic_cast<Array<arrayClass> *>(other);
         if (arr == nullptr || arr->getSize() != size) {
@@ -385,6 +472,9 @@ public:
         return true;
     }
 
+    /**
+     * deletes all elements of the array and sets the size to 0
+     **/
     void delete_contents() {
         for (size_t x = 0; x < this->getSize(); x++) {
             delete array[x];
