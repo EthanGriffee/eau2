@@ -14,7 +14,7 @@ class Application : public Object{
         KDStore kv;
         size_t node;
  
-        Application(size_t idx) : kv(node) {
+        Application(size_t idx) : kv(idx) {
             node = idx;
         }
 

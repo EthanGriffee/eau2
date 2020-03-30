@@ -11,9 +11,6 @@ test:
 	@cmp --silent tests/test_outputs/testpseudonetwork_output.txt tests/test_outputs/testpseudonetwork_expectedoutput.txt && echo 'PSEUDO NETWORK TEST SUCCESS' || echo 'PSEUDO NETWORK TEST FAILURE'
 	@cmp --silent tests/test_outputs/testmap_output.txt tests/test_outputs/testmap_expectedoutput.txt && echo 'MAP TEST SUCCESS' || echo 'MAP TEST FAILURE'
 
-
-
-
 	@rm -f testdemo_output.txt
 	@rm -f testpseudonetwork_output.txt
 	@rm -f testmap_output.txt
@@ -58,7 +55,7 @@ valgrind-milestone1:
 
 build-milestone2:
 	g++ -std=c++11 -o tests/testserial tests/testserial.cpp
-	g++ -std=c++11 -o tests/testtrivial tests/testtrivial.cpp
+	g++ -std=c++11 -o tests/testtrivial -pthread tests/testtrivial.cpp
 
 
 test-milestone2:
