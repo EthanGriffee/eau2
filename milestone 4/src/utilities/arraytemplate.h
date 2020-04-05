@@ -55,11 +55,18 @@ serialize_element(const FloatingType& f) {
 /**
  * Serializes a integral type by storing it inside a buffer and returning the buffer.
  */
-template <typename IntegralType>
-typename std::enable_if<std::is_integral<IntegralType>::value, char*>::type
-serialize_element(const IntegralType& i) {
-    char* a =  new char[1024];
+char* serialize_element(char i) {
+    char* a =  new char[4];
     sprintf(a, "{%c}", i);
+    return a;
+}
+
+/**
+ * Serializes a integral type by storing it inside a buffer and returning the buffer.
+ */
+char* serialize_element(int i) {
+    char* a =  new char[1024];
+    sprintf(a, "{%i}", i);
     return a;
 }
 
@@ -287,15 +294,21 @@ public:
     virtual void remove(arrayClass to_remove) {
         for (size_t i = 0; i < size; i ++) {
             if (equal(this->get(i), (to_remove))) {
-                size -= 1;
-                for (size_t x = i; x < size; x++) {
-                    array[x] = array[x + 1];
-                }
+                erase(i);
                 return;
             }
         }
     }
 
+    /**
+     * removes the index from the array
+     */
+    virtual void erase(int index) {
+        size -= 1;
+        for (size_t x = index; x < size; x++) {
+            array[x] = array[x + 1];
+        }
+    }
     /**
      * Removes all instances of the given Object in this array. If nothing 
      * is found, then no action will occur. The size reduces the number of found
@@ -402,6 +415,26 @@ public:
             y = returning->parseUntilClassSeperator(s, x);
             char* c = returning->substring(s, x + 1, y - 2);
             returning->add(strcmp(c, "0") == 0);
+            x += y;
+            delete[] c;
+        }
+        return returning;
+    }
+
+    /**
+     * static method for deserializing an int array.
+     * @arg s the char* beign deserialized.
+     **/
+    static Array<int>* deserialize_intarray(char* s) {
+        int y;
+        Array<int>* returning = new Array<int>();
+        const char* className = typeid(int).name();
+        int x = Array<int>::assert_correct_deserial_(s, className);
+   
+        while(s[x] == '{') {
+            y = returning->parseUntilClassSeperator(s, x);
+            char* c = returning->substring(s, x + 1, y - 2);
+            returning->add(atoi(c));
             x += y;
             delete[] c;
         }

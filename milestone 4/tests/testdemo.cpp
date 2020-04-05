@@ -1,5 +1,5 @@
-#include "../src/demo.h"
-#include "../src/networkpseudo.h"
+#include "../src/applications/demo.h"
+#include "../src/network/networkpseudo.h"
 
 void test1() {
     NetworkPseudo net(3);

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include "column.h"
-#include "string.h"
+#include "../utilities/string.h"
 
 /**
  * The maximum allowed length for string columns.

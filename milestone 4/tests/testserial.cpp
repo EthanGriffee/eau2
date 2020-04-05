@@ -1,9 +1,9 @@
-#include "../src/arraytemplate.h"
-#include "../src/dataframe.h"
-#include "../src/string.h"
-#include "../src/column.h"
-#include "../src/kvstore.h"
-#include "../src/message.h"
+#include "../src/utilities/arraytemplate.h"
+#include "../src/dataframe/dataframe.h"
+#include "../src/utilities/string.h"
+#include "../src/dataframe/column.h"
+#include "../src/store/kvstore.h"
+#include "../src/network/message.h"
 #include <math.h>
 
 
@@ -82,6 +82,39 @@ void testBoolColumnSerialization() {
     delete b2;
     b->OK("BoolColumn OK");
 }
+
+void testStringColumnSerialization() {
+    StringColumn* b = new StringColumn();
+    b->push_back(new String("bob"));
+    b->push_back(new String("bob2"));
+    b->push_back(new String("bob3"));
+    char* serialized = b->serialize();
+    StringColumn* b2 = StringColumn::deserialize(serialized);
+    b->t_true(b->get(0)->equals(b2->get(0)));
+    b->t_true(b->get(1)->equals(b2->get(1)));
+    b->t_true(b->get(2)->equals(b2->get(2)));
+    delete[] serialized;
+    delete b;
+    delete b2;
+    b->OK("StringColumn OK");
+}
+
+void testIntColumnSerialization() {
+    IntColumn* b = new IntColumn();
+    b->push_back(2);
+    b->push_back(5);
+    b->push_back(1);
+    char* serialized = b->serialize();
+    IntColumn* b2 = IntColumn::deserialize(serialized);
+    b->t_true(b->get(0) == b2->get(0));
+    b->t_true(b->get(1) == b2->get(1));
+    b->t_true(b->get(2) == b2->get(2));
+    delete[] serialized;
+    delete b;
+    delete b2;
+    b->OK("IntColumn OK");
+}
+
 
 void testColumnArraySerialization() {
     Array<Column*>* arr = new Array<Column*>();
@@ -168,6 +201,8 @@ int main(int argc, char **argv) {
     testCharArraySerialization();
     testBoolArraySerialization();
     testBoolColumnSerialization();
+    testStringColumnSerialization();
+    testIntColumnSerialization();
     testColumnArraySerialization();
     testDataFrameSerialization();
     testKeySerialization();

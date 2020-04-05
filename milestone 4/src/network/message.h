@@ -1,10 +1,10 @@
 #pragma once
 
-#include "string.h"
-#include "object.h"
-#include "helper.h"
-#include "key.h"
-#include "arraytemplate.h"
+#include "../utilities/string.h"
+#include "../utilities/object.h"
+#include "../utilities/helper.h"
+#include "../store/key.h"
+#include "../utilities/arraytemplate.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

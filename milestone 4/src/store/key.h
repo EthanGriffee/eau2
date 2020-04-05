@@ -1,7 +1,7 @@
 #pragma once
 
-#include "string.h"
-#include "object.h"
+#include "../utilities/string.h"
+#include "../utilities/object.h"
 
 
 class Key : public Object {
@@ -12,6 +12,11 @@ class Key : public Object {
         Key(char* name, size_t node) {
             this->name = name;
             this->node = node;
+        }
+
+        Key(char* name) {
+            this->name = name;
+            this->node = 0;
         }
 
         ~Key() {
@@ -66,3 +71,24 @@ class Key : public Object {
             return false;
         }
 };
+
+
+class KeyBuff : public Object {                                                  
+  public:                                                                        
+  size_t node;                                               
+  StrBuff buf_;                                                                  
+                                                                               
+  KeyBuff(char* name, size_t node) : buf_(name) {
+      this->node = node;
+  }                               
+                                                                                 
+  KeyBuff& c(String &s) { buf_.c(s); return *this;  }                            
+  KeyBuff& c(size_t v) { buf_.c(v); return *this; }                              
+  KeyBuff& c(const char* v) { buf_.c(v); return *this; }                         
+                                                                                 
+  Key* get() {                                                                   
+    String* s = buf_.get();                                                                                                        
+    Key* k = new Key(s->steal(), node);                                                                                             
+    return k;                                                                    
+  }                                                                              
+}; // KeyBuff        

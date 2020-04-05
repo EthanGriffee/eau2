@@ -1,12 +1,8 @@
 #pragma once
 
-#include "helper.h"
 #include "application.h"
-#include "kvstore.h"
-#include "arraytemplate.h"
-#include "dataframe.h"
-#include "networkifc.h"
-#include "thread.h"
+#include "../utilities/arraytemplate.h"
+#include "../utilities/thread.h"
 
 
 class Demo : public Application {

@@ -1,19 +1,19 @@
 #pragma once
 
-#include "string.h"
-#include "object.h"
-#include "wrapper.h"
-#include "arraytemplate.h"
-#include "helper.h"
+#include "../utilities/string.h"
+#include "../utilities/object.h"
+#include "../utilities/wrapper.h"
+#include "../utilities/arraytemplate.h"
+#include "../utilities/helper.h"
 #include "column.h"
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "parser.h"
-#include "key.h"
+#include "../store/key.h"
 
 class KDStore;
-class FileReader;
+class Writer;
  
 /*************************************************************************
  * Schema::
@@ -406,6 +406,10 @@ class DataFrame : public Object {
       r.accept(row);
     }
   }
+
+  void local_map(Rower& r) {
+    
+  }
  
   /** Create a new dataframe, constructed from rows for which the given Rower
     * returned true from its accept method. */
@@ -443,7 +447,7 @@ class DataFrame : public Object {
 
   static DataFrame* fromScalar(Key* key, KDStore* kv, double val);
 
-  static  DataFrame* fromVisitor(Key* in, KDStore* kv, char* schema, FileReader& fr);
+  static  DataFrame* fromVisitor(Key* in, KDStore* kv, char* schema, Writer& fr);
 
 
   static DataFrame* deserialize(char* des) {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "arraytemplate.h"
-#include "object.h"
-#include "thread.h"
+#include "../utilities/arraytemplate.h"
+#include "../utilities/object.h"
+#include "../utilities/thread.h"
 #include "networkifc.h"
 #include <assert.h>
 #include <unistd.h>

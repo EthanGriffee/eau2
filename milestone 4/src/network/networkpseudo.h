@@ -1,12 +1,12 @@
 #pragma once
 
-#include "arraytemplate.h"
-#include "object.h"
+#include "../utilities/arraytemplate.h"
+#include "../utilities/object.h"
 #include "message.h"
-#include "thread.h"
+#include "../utilities/thread.h"
 #include "networkifc.h"
-#include "map.h"
-#include "wrapper.h"
+#include "../utilities/map.h"
+#include "../utilities/wrapper.h"
 
 
 /**

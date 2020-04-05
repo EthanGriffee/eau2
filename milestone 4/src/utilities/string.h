@@ -116,6 +116,14 @@ public:
         val_ = new char[capacity_ = 10];
         size_ = 0;
     }
+
+    StrBuff(char* name) {
+        size_t capacity_ = strlen(name);
+        val_ = new char[capacity_];
+        memcpy(val_, name, capacity_);
+        size_ = capacity_;
+    }
+
     void grow_by_(size_t step) {
         if (step + size_ < capacity_) return;
         capacity_ *= 2;

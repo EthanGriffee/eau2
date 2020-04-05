@@ -1,9 +1,9 @@
 // lang::CwC
 
-#include "../src/map.h"
-#include "../src/object.h"
-#include "../src/string.h"
-#include "../src/wrapper.h"
+#include "../src/utilities/map.h"
+#include "../src/utilities/object.h"
+#include "../src/utilities/string.h"
+#include "../src/utilities/wrapper.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>

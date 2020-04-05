@@ -1,11 +1,15 @@
-#include "dataframe.h"
+#pragma once
+
+#include "../dataframe/dataframe.h"
 #include "application.h"
+#include "../utilities/simap.h"
+#include <iostream>
 
 
-class Writer {
+class Writer : public Rower {
   public:
 
-    virtual void visit(Row& r) = 0;
+    virtual void visit(Row& r) {}
 
     virtual bool done() {
       return true;
@@ -13,9 +17,14 @@ class Writer {
    
 };
 
-class Reader {
+class Reader : public Rower {
+  public:
 
-    virtual bool visit(Row& r) = 0;
+    virtual bool visit(Row& r) {}
+
+    virtual bool done() {
+      return true;
+    }
 
 };
 
@@ -40,7 +49,7 @@ public:
             ++i_;
         }
         buf_[i_] = 0;
-        String word(buf_ + wStart, i_ - wStart);
+        String* word = new String(buf_ + wStart, i_ - wStart);
         r.set_string(0, word);
         ++i_;
         skipWhitespace_();
@@ -52,9 +61,9 @@ public:
     bool done() override { return (i_ >= end_) && feof(file_);  }
  
     /** Creates the reader and opens the file for reading.  */
-    FileReader() {
-        file_ = fopen(arg.file, "r");
-        if (file_ == nullptr) FATAL_ERROR("Cannot open file " << arg.file);
+    FileReader(char* file) {
+        file_ = fopen(file, "r");
+        assert(file_);
         buf_ = new char[BUFSIZE + 1]; //  null terminator
         fillBuffer_();
         skipWhitespace_();
@@ -128,27 +137,27 @@ public:
  
   void next() {
       if (i == map_.capacity_ ) return;
-      if ( j < map_.items_[i].keys_.size() ) {
+      if ( j < map_.items_[i].keys_.getSize() ) {
           j++;
           ++seen;
       } else {
           ++i;
           j = 0;
-          while( i < map_.capacity_ && map_.items_[i].keys_.size() == 0 )  i++;
+          while( i < map_.capacity_ && map_.items_[i].keys_.getSize() == 0 )  i++;
           if (k()) ++seen;
       }
   }
  
   String* k() {
-      if (i==map_.capacity_ || j == map_.items_[i].keys_.size()) return nullptr;
-      return (String*) (map_.items_[i].keys_.get_(j));
+      if (i==map_.capacity_ || j == map_.items_[i].keys_.getSize()) return nullptr;
+      return (String*) (map_.items_[i].keys_.get(j));
   }
  
   size_t v() {
-      if (i == map_.capacity_ || j == map_.items_[i].keys_.size()) {
+      if (i == map_.capacity_ || j == map_.items_[i].keys_.getSize()) {
           assert(false); return 0;
       }
-      return ((Num*)(map_.items_[i].vals_.get_(j)))->v;
+      return ((Num*)(map_.items_[i].vals_.get(j)))->v;
   }
  
   void visit(Row& r) {
@@ -173,16 +182,20 @@ class WordCount: public Application {
 public:
   static const size_t BUFSIZE = 1024;
   Key in;
-  KeyBuff kbuf;
   SIMap all;
+  char* file_name;
+  size_t num_nodes;
  
-  WordCount(size_t idx, NetworkIfc & net):
-    Application(idx, net), in("data"), kbuf(new Key("wc-map-",0)) { }
+  WordCount(size_t idx, NetworkIfc & net, char* file_name, size_t num_nodes):
+    Application(idx, net), in("data") { 
+      this->file_name = file_name;
+      this->num_nodes = num_nodes;
+    }
  
   /** The master nodes reads the input, then all of the nodes count. */
   void run_() override {
-    if (index == 0) {
-      FileReader fr;
+    if (node == 0) {
+      FileReader fr(file_name);
       delete DataFrame::fromVisitor(&in, &kv, "S", fr);
     }
     local_count();
@@ -192,31 +205,35 @@ public:
   /** Returns a key for given node.  These keys are homed on master node
    *  which then joins them one by one. */
   Key* mk_key(size_t idx) {
-      Key * k = kbuf.c(idx).get();
-      LOG("Created key " << k->c_str());
+      StrBuff s;
+      s = s.c("wc-map-");
+      s = s.c(idx);
+      Key * k = new Key(s.get_char(), 0);
+      p("Created key ");
+      pln(k->getKey());
       return k;
   }
  
   /** Compute word counts on the local node and build a data frame. */
   void local_count() {
     DataFrame* words = (kv.waitAndGet(in));
-    p("Node ").p(index).pln(": starting local count...");
+    p("Node ").p(node).pln(": starting local count...");
     SIMap map;
     Adder add(map);
     words->local_map(add);
     delete words;
     Summer cnt(map);
-    delete DataFrame::fromVisitor(mk_key(index), &kv, "SI", cnt);
+    delete DataFrame::fromVisitor(mk_key(node), &kv, "SI", cnt);
   }
  
   /** Merge the data frames of all nodes */
   void reduce() {
-    if (index != 0) return;
+    if (node != 0) return;
     pln("Node 0: reducing counts...");
     SIMap map;
     Key* own = mk_key(0);
     merge(kv.get(*own), map);
-    for (size_t i = 1; i < arg.num_nodes; ++i) { // merge other nodes
+    for (size_t i = 1; i < num_nodes; ++i) { // merge other nodes
       Key* ok = mk_key(i);
       merge(kv.waitAndGet(*ok), map);
       delete ok;
@@ -233,7 +250,7 @@ public:
 }; // WordcountDemo
 
 
-DataFrame*  DataFrame::fromVisitor(Key* in, KDStore* kv, char* schema, FileReader& fr) {
+DataFrame*  DataFrame::fromVisitor(Key* in, KDStore* kv, char* schema, Writer& fr) {
   Schema sch(schema);
   Row r(sch);
   DataFrame* returning = new DataFrame(sch);

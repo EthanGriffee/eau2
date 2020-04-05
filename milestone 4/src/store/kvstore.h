@@ -1,12 +1,11 @@
 #pragma once
 
-#include "object.h"
-#include "dataframe.h"
-#include "string.h"
-#include "dataframe.h"
-#include "networkifc.h"
-#include "thread.h"
-#include "message.h"
+#include "../utilities/object.h"
+#include "../dataframe/dataframe.h"
+#include "../utilities/string.h"
+#include "../network/networkifc.h"
+#include "../utilities/thread.h"
+#include "../network/message.h"
 #include "key.h"
 
 

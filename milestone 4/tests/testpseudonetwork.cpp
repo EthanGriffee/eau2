@@ -1,4 +1,4 @@
-#include "../src/networkpseudo.h"
+#include "../src/network/networkpseudo.h"
 
 
 void testStringToUnsignedMap() {

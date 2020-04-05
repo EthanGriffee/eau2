@@ -1,8 +1,8 @@
 #pragma once
 
 #include "application.h"
-#include "arraytemplate.h"
-#include "dataframe.h"
+#include "../utilities/arraytemplate.h"
+#include "../dataframe/dataframe.h"
 
 
 class Trivial : public Application {

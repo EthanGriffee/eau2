@@ -1,8 +1,8 @@
 #include <stdlib.h>
-#include "../src/arraytemplate.h"
-#include "../src/string.h"
-#include "../src/helper.h"
-#include "../src/object.h"
+#include "../src/utilities/arraytemplate.h"
+#include "../src/utilities/string.h"
+#include "../src/utilities/helper.h"
+#include "../src/utilities/object.h"
 
 class TestArrayMethods {
     public:

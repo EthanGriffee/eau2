@@ -1,8 +1,8 @@
 #pragma once
 
-#include "kvstore.h"
-#include "object.h"
-#include "networkifc.h"
+#include "../store/kvstore.h"
+#include "../utilities/object.h"
+#include "../network/networkifc.h"
 
 
 /**

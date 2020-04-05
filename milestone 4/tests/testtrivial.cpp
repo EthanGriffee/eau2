@@ -1,4 +1,4 @@
-#include "../src/trivial.h"
+#include "../src/applications/trivial.h"
 
 void test1() {
     Trivial x(0);

@@ -3,9 +3,9 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include "string.h"
-#include "object.h"
-#include "arraytemplate.h"
+#include "../utilities/string.h"
+#include "../utilities/object.h"
+#include "../utilities/arraytemplate.h"
 
 class BoolColumn;
 class DoubleColumn;
@@ -164,6 +164,17 @@ class IntColumn : public Column {
   }
 
   static IntColumn* deserialize(char* s) {
+    int x = 16;
+    IntColumn* returning = new IntColumn();
+    char* c = returning->substring(s, 0, x);
+    assert(strcmp(c, "{INTCOLUMN|arr_=") == 0);
+    delete[] c;
+    int y = returning->parseUntilClassSeperator(s, x);
+    c = returning->substring(s, x, y);
+    delete returning->arr_;
+    returning->arr_ = Array<int>::deserialize_intarray(c);
+    delete[] c;
+    return returning;
 
   }
 
@@ -219,7 +230,17 @@ class StringColumn : public Column {
   }
 
   static StringColumn* deserialize(char* s) {
-    
+    int x = 19;
+    StringColumn* returning = new StringColumn();
+    char* c = returning->substring(s, 0, x);
+    assert(strcmp(c, "{STRINGCOLUMN|arr_=") == 0);
+    delete[] c;
+    int y = returning->parseUntilClassSeperator(s, x);
+    c = returning->substring(s, x, y);
+    delete returning->arr_;
+    returning->arr_ = Array<String*>::deserialize_stringarray(c);
+    delete[] c;
+    return returning;
   }
 
   ~StringColumn() {
