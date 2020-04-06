@@ -42,6 +42,7 @@ class KVStore : public Object, public Thread {
             char* val = this->get(*searching_key);
             Message* mess = new KeyValue(searching_key, val, node, msg->getSender());
             net->send_message(mess);
+            //msg->p(node).pln(" SENDING MESSAGE TO ").p(mess->getTarget());
         }
 
         /**
@@ -55,6 +56,7 @@ class KVStore : public Object, public Thread {
                     case(MsgKind::WaitAndGet): {
                         WaitAndGet* wgm = mess->asWaitAndGet();
                         Key* searching_key = wgm->getKey();
+                        //mess->p(node).p(" RECIEVED MESSAGE FROM ").p(wgm->getSender()).pln(searching_key->getKey());
                         lock_.lock();
                         if (this->contains(searching_key)) {
                             respondToWaitAndGet(wgm);
@@ -98,6 +100,7 @@ class KVStore : public Object, public Thread {
                     if(requests.get(x)->getKey()->equals(key)) {
                         respondToWaitAndGet(requests.get(x));
                         requests.remove(requests.get(x));
+                        x -= 1;
                     }
                 }
                 lock_.unlock();
@@ -115,7 +118,7 @@ class KVStore : public Object, public Thread {
          * Returns the value associated with the key input
          */
         char*  get(Key key) {
-            return vals.get(keys.indexOf(&key));
+            return waitAndGet(key);
         }
 
         /**
@@ -123,7 +126,7 @@ class KVStore : public Object, public Thread {
          */
         virtual char* waitAndGet(Key key) {
             if (this->contains(&key)) {
-                return this->get(key);
+                return vals.get(keys.indexOf(&key));
             }
             else {
                 requestKey(&key);
@@ -172,6 +175,10 @@ class KDStore : public Object {
          * Serializes the dataframe and puts it into the KVStore.
          */
         void put(Key* key, DataFrame* value) {
+            /**
+            for(int x = 0; x < value->ncols(); x++) {
+                value->columns_->get(x);
+            }*/
             kv.put(key, value->serialize());
         }
 
@@ -181,7 +188,6 @@ class KDStore : public Object {
         DataFrame* get(Key key) {
             return DataFrame::deserialize(kv.get(key));
         }
-
 
         /**
          * calls wait and get on the kvstore, and deserializes it into a dataframe

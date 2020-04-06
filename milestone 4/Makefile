@@ -2,8 +2,12 @@ build:
 	g++ -std=c++11 -o tests/testworddemo -pthread tests/testworddemo.cpp
 
 test:
+	./tests/testworddemo
 
-
+test-network:
+	./tests/testnetworkip -node-number 0 -num-nodes 3 -serverip 127.0.0.1 -serverport 8081 -port 8081 &
+	./tests/testnetworkip -node-number 1 -num-nodes 3 -serverip 127.0.0.1 -serverport 8081 -port 8327  &
+	./tests/testnetworkip -node-number 2 -num-nodes 3 -serverip 127.0.0.1 -serverport 8081 -port 8023  
 
 all-build:
 	@make build-milestone1
@@ -16,7 +20,7 @@ all-test:
 	@make test-milestone3
 
 valgrind:
-	valgrind --leak-check=yes tests/testdemo
+	valgrind --leak-check=yes tests/testworddemo
 
 build-milestone1:
 	g++ -std=c++11 -o tests/testarray tests/testarraytemplate.cpp
@@ -70,16 +74,12 @@ valgrind-milestone2:
 build-milestone3:
 	g++ -std=c++11 -o tests/testdemo -pthread tests/testdemo.cpp
 	g++ -std=c++11 -o tests/testpseudonetwork tests/testpseudonetwork.cpp
-	g++ -std=c++11 -o tests/testmap tests/testmap.cpp
 
 test-milestone3:
 	@tests/testdemo > tests/test_outputs/testdemo_output.txt
 	@tests/testpseudonetwork > tests/test_outputs/testpseudonetwork_output.txt
-	@tests/testmap > tests/test_outputs/testmap_output.txt
 	@cmp --silent tests/test_outputs/testdemo_output.txt tests/test_outputs/testdemo_expectedoutput.txt && echo 'DEMO TEST SUCCESS' || echo 'DEMO TEST FAILURE'
 	@cmp --silent tests/test_outputs/testpseudonetwork_output.txt tests/test_outputs/testpseudonetwork_expectedoutput.txt && echo 'PSEUDO NETWORK TEST SUCCESS' || echo 'PSEUDO NETWORK TEST FAILURE'
-	@cmp --silent tests/test_outputs/testmap_output.txt tests/test_outputs/testmap_expectedoutput.txt && echo 'MAP TEST SUCCESS' || echo 'MAP TEST FAILURE'
 
 	@rm -f tests/test_outputs/testdemo_output.txt
 	@rm -f tests/test_outputs/testpseudonetwork_output.txt
-	@rm -f tests/test_outputs/testmap_output.txt

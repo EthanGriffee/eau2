@@ -9,10 +9,17 @@
 class Writer : public Rower {
   public:
 
-    virtual void visit(Row& r) {}
+    virtual void visit(Row& r) = 0;
+
+    virtual bool accept(Row& r) {
+      if(!done()) {
+        this->visit(r);
+      }
+      return true;
+    }
 
     virtual bool done() {
-      return true;
+      return false;
     }
    
 };
@@ -20,10 +27,17 @@ class Writer : public Rower {
 class Reader : public Rower {
   public:
 
-    virtual bool visit(Row& r) {}
+    virtual bool visit(Row& r) = 0;
+
+    virtual bool accept(Row& r) {
+      if(!done()) {
+        return visit(r);
+      }
+      return false;
+    }
 
     virtual bool done() {
-      return true;
+      return false;
     }
 
 };
@@ -139,7 +153,7 @@ public:
       if (i == map_.capacity_ ) return;
       if ( j < map_.items_[i].keys_.getSize() ) {
           j++;
-          ++seen;
+          if (k()) ++seen;
       } else {
           ++i;
           j = 0;
@@ -169,7 +183,8 @@ public:
       next();
   }
  
-  bool done() {return seen == map_.size(); }
+  bool done() {
+    return seen == map_.size(); }
 };
  
 /****************************************************************************
@@ -209,8 +224,7 @@ public:
       s = s.c("wc-map-");
       s = s.c(idx);
       Key * k = new Key(s.get_char(), 0);
-      p("Created key ");
-      pln(k->getKey());
+      p("Created key ").pln(k->getKey());
       return k;
   }
  

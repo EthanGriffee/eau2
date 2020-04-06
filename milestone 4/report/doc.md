@@ -14,8 +14,11 @@ Eau2 has three layers to it:
 
 We implemented the following classes as we believe they are needed for the development of the eau2 system:
 
+* **application.h** - this is used to create and store the kv store and stores a network for the application to interact with
 * **networkifc.h** - we use this for sending and recieving messages.
 * **pseudonetwork.h** - we use this for testing as it is a network that uses threads.
+* **networkip.h** - for actual transmission accross a network - still in progress
+* **message.h** - currently used for creating and sending messages across a network, include 5 different message types.
 * **kvstore.h** - we use this to hold the serialized dataframes.
 * **dataframe.h** - we use this to store and display the data after it parsed from a file.
 * **parser.h** (the code is borrowed from team 4200NE) - we use this to parse SoR data from a file into our dataframe.
@@ -30,6 +33,7 @@ We implemented the following classes as we believe they are needed for the devel
 One of the use cases of the eau2 system is that it can be trained to behave like a generic database wherein we can parse and store data from a file such that users can request for queries and the system will respond back with the appropiate data.
 
 # Open questions
+In word count, if we are splitting the dataframe up by columns, and word count only has one column, why do we distribute / call local map on it?
 
 
 # Status
@@ -42,3 +46,5 @@ KVStore as it has a thread running a while true loop, that we cannot join.
 * We created a static Method in DataFrame that creates a dataframe from a file location input.
 * Serialization / Deserialization was added for dataframes, columns, and certain arrays.
 * We created a pseudo network for testing the KVStore, and ran the DEMO application code on it.
+* Currently working on getting the actual network working
+* Will then move on to distributing the dataframe / adding functionality to waitAndGet and local map

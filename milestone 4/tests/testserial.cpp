@@ -193,6 +193,37 @@ void testMessageKeyValueSerialization() {
     k.OK("Serializing KeyValue Messages OK");
 }
 
+void testMessageRegisterSerialization() {
+    sockaddr_in reg_addr;
+
+    reg_addr.sin_family = AF_INET;
+    reg_addr.sin_port = htons(8080);
+    assert(inet_pton(AF_INET, "127.0.0.1", &reg_addr.sin_addr)>0);
+
+    Register* m = new Register(reg_addr, 1, 1);
+    Register* message = Register::deserialize(m->serialize());
+    m->t_true(ntohs(message->getSockAddr().sin_port) == 8080);
+    m->OK("Reg OK");
+}
+
+void testDirectorySerialization() {
+
+    Array<String*>* arr = new Array<String*>();
+    arr->add(new String("jack"));
+    arr->add(new String("jill"));
+    arr->add(new String("hill"));
+    Array<int>* arr2 = new Array<int>();
+    arr2->add(1);
+    arr2->add(2);
+    Directory* m = new Directory(arr, arr2, 5, 6);
+    Directory* newMess = Directory::deserialize(m->serialize());
+    arr->t_true(m->getSender() == newMess->getSender());
+    arr->t_true(m->getTarget() == newMess->getTarget());
+    arr->t_true(m->ports_->get(0) == 1);
+    arr->t_true(strcmp(m->ips_->get(2)->c_str(), "hill") == 0);
+    arr->OK("Dir OK");
+}
+
 
 
 int main(int argc, char **argv) {
@@ -208,4 +239,6 @@ int main(int argc, char **argv) {
     testKeySerialization();
     testMessageWaitAndGetSerialization();
     testMessageKeyValueSerialization();
+    testMessageRegisterSerialization();
+    testDirectorySerialization();
 }

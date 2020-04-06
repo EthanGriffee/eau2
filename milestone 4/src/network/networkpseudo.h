@@ -5,7 +5,7 @@
 #include "message.h"
 #include "../utilities/thread.h"
 #include "networkifc.h"
-#include "../utilities/map.h"
+#include "../utilities/simap.h"
 #include "../utilities/wrapper.h"
 
 
@@ -48,11 +48,11 @@ class MessageQueue : public Object {
  */
 class StringToUnsignedMap : public Object {
     public:
-        Map* m;
+        SIMap* m;
         Lock lock_;
 
         StringToUnsignedMap() { 
-            m = new Map();
+            m = new SIMap();
         }
 
         ~StringToUnsignedMap() {
@@ -64,7 +64,7 @@ class StringToUnsignedMap : public Object {
          */
         void put(String* key, size_t val) {
             lock_.lock();
-            m->set(key, new UnsignedIntObj(val));
+            m->set(*key, new Num(val));
             lock_.unlock();
         }
 
@@ -73,10 +73,9 @@ class StringToUnsignedMap : public Object {
          */
         size_t get(String* key) {
             lock_.lock();
-            UnsignedIntObj* uiobj = dynamic_cast<UnsignedIntObj*> (m->get(key));
+            Num* r = m->get(*key);
             lock_.unlock();
-            assert(uiobj);
-            return uiobj->getUnsignedInt();
+            return r->v;
         }
 };
 

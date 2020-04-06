@@ -259,7 +259,13 @@ class DataFrame : public Object {
   /** Create a data frame from a schema and columns. All columns are created
     * empty. */
   DataFrame(Schema& schema) {
-    scm = &schema;
+    Array<char>* schema_array = schema.types;
+    StrBuff types;
+    std::string s;
+    for (int x = 0; x < schema_array->getSize(); x++) {
+      s.append(1, schema_array->get(x));
+    }
+    scm = new Schema(s.c_str());
     columns_ = new Array<Column*>();
     for (int i = 0; i < scm->width(); i++) {
       switch(scm->col_type(i)) {
@@ -407,8 +413,11 @@ class DataFrame : public Object {
     }
   }
 
+  /**
+   * visits locally owned columns
+   */
   void local_map(Rower& r) {
-    
+    map(r);
   }
  
   /** Create a new dataframe, constructed from rows for which the given Rower
@@ -425,6 +434,9 @@ class DataFrame : public Object {
     return n;
   }
 
+  /**
+   * returns a dataframe based on SOR from the file
+   */
   static DataFrame* fromFile(char* filename) {
     Schema s;
     DataFrame* df = new  DataFrame(s);

@@ -6,6 +6,13 @@
 #include <limits>
 #include <type_traits>
 
+/**
+ * Authors : Ethan Griffee and Divit Koradia
+ * Array template class used for creating many different
+ * types of arrays. Methods like serealize and equal defined
+ * first for specific types used in the certain arrays.
+ **/
+
 
 class Column;
 
@@ -108,11 +115,7 @@ public:
     /**
      * Default constructor which will set the initial max-capacity to the array to 10. 
      **/
-    Array() {
-        max_capacity = 10;
-        size = 0;
-        array = new arrayClass[max_capacity];
-    }
+    Array() : Array(10) { }
 
     Array(size_t max) {
         max_capacity = max;
@@ -151,7 +154,6 @@ public:
         }
         delete[] array;
         array = new_array;
-        
     }
 
     /**
@@ -204,7 +206,6 @@ public:
      * then it will not be added. 
      * Assuming a valid move, the size of this array is incremented by the size of the 
      * added array. If resizing the array is necessary, then that should be done.
-     * @arg to_add Array of Objects that all need to be added to this array. 
      **/
     virtual void addAll(Array<arrayClass>* to_add) {
         size_t add_length = to_add->getSize();
@@ -223,7 +224,6 @@ public:
      * If the index is invalid, then nothing will be added/shifted. 
      * The size of this array is incremented by 1. 
      * If resizing the array is necessary, then that should be done. 
-     * @arg to_add Object to be added to the array
      * @arg index Location to add the Object at
      **/
     virtual void add(arrayClass to_add, size_t index) {
@@ -265,7 +265,6 @@ public:
      * If the index is invalid, then nothing will be added/shifted.
      * Assuming a valid move, the size of this array is incremented by the size of the 
      * added array.  If resizing the array is necessary, then that should be done.
-     * @arg to_add Array of Objects to be added to the array
      * @arg index Location to add the objects to the array at
      **/
     virtual void addAll(Array<arrayClass>* to_add, size_t index) {
@@ -332,19 +331,6 @@ public:
      **/
     virtual size_t getSize() {
         return size;
-    }
-
-    /**
-     * Overriding the Object hash_me() method. 
-     * Hashes the array based on user specifications. Default implementation is
-     * to hash all internal elements and sum them up. 
-     **/
-    size_t hash_me_() {
-        size_t n = 0;
-        for(int x = 0; x < size; x++) {
-            n += array[x]->hash();
-        }
-        return n;
     }
 
     /**
@@ -494,7 +480,7 @@ public:
      **/
     bool equals(Object* other) {
         Array<arrayClass>* arr = dynamic_cast<Array<arrayClass> *>(other);
-        if (arr == nullptr || arr->getSize() != size) {
+        if (!arr || arr->getSize() != size) {
             return false;
         }
         for (size_t x = 0; x < size; x++) {

@@ -6,6 +6,7 @@
 
 
 /**
+ * Authors : Ethan Griffee and Divit Koradia
  * Represents an eau2 application. It contains a KDStore which keeps track of keys and dataframes, and
  * runs across multiple nodes.
  */

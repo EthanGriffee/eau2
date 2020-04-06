@@ -10,3 +10,5 @@ Serializing Dataframes OK
 Serializing Keys OK
 Serializing WaitAndGets Messages OK
 Serializing KeyValue Messages OK
+Reg OK
+Dir OK
