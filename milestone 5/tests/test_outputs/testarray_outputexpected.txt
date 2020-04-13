@@ -1,0 +1,13 @@
+All basic add test works
+Add at beginning works
+Add at middle works
+Add at end works
+Add All works at end
+Add All works at beginning
+Add All works in middle
+Singular remove works
+Remove all works
+Basic String Array Functions work
+Basic Int Array Functions work
+Basic Double Array Functions work
+Basic Bool Array Functions work
